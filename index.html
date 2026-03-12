@@ -166,7 +166,7 @@
   <div id="status">טוען מפה...</div>
 </div>
 
-<!-- סטטיסטיקות (בלי שינוי מהשבוע/3 ימים) -->
+<!-- סטטיסטיקות -->
 <div class="stats-section">
   <div class="stat">
     <div class="stat-label">סה"כ התרעות ב-12 הימים האחרונים</div>
@@ -183,7 +183,7 @@
 </div>
 
 <script>
-// נתונים – עם "אזור" מובנה
+// רשימה מורחבת מאוד של אזורים + ערים
 const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts12: 9 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts12: 3 },
@@ -201,14 +201,29 @@ const cities = [
   { name: "אזור עכו", lat: 32.9278, lon: 35.0780, alerts12: 5 },
   { name: "אזור אילת", lat: 29.5577, lon: 34.9519, alerts12: 0 },
   { name: "אזור ירוחם", lat: 30.9875, lon: 34.9281, alerts12: 1 },
-  { name: "אזור ים המלח", lat: 31.35, lon: 35.45, alerts12: 1 }
+  { name: "אזור ים המלח", lat: 31.35, lon: 35.45, alerts12: 1 },
+  { name: "אזור כנרת / טבריה", lat: 32.795, lon: 35.53, alerts12: 12 },
+  { name: "אזור גליל תחתון", lat: 32.92, lon: 35.35, alerts12: 15 },
+  { name: "אזור גליל עליון", lat: 33.00, lon: 35.45, alerts12: 28 },
+  { name: "אזור בית שאן / עמק המעיינות", lat: 32.50, lon: 35.50, alerts12: 10 },
+  { name: "אזור רמת הגולן", lat: 33.10, lon: 35.70, alerts12: 14 },
+  { name: "אזור צפת / מירון", lat: 32.968, lon: 35.492, alerts12: 18 },
+  { name: "אזור קצרין", lat: 32.993, lon: 35.689, alerts12: 11 },
+  { name: "אזור זכרון יעקב / כרמל", lat: 32.57, lon: 34.95, alerts12: 4 },
+  { name: "אזור עפולה / עמק יזרעאל", lat: 32.61, lon: 35.29, alerts12: 6 },
+  { name: "אזור הרצליה", lat: 32.1658, lon: 34.8367, alerts12: 6 },
+  { name: "אזור רעננה", lat: 32.1848, lon: 34.8713, alerts12: 6 },
+  { name: "אזור בת ים", lat: 32.0132, lon: 34.7480, alerts12: 7 },
+  { name: "אזור רמת גן", lat: 32.0684, lon: 34.8248, alerts12: 8 },
+  { name: "אזור חולון", lat: 32.0158, lon: 34.7874, alerts12: 7 },
+  { name: "אזור בני ברק", lat: 32.0849, lon: 34.8352, alerts12: 8 }
 ];
 
 const total12 = cities.reduce((sum, c) => sum + c.alerts12, 0);
 document.getElementById('total12').textContent = total12;
 document.getElementById('top-zones').innerHTML = cities
   .sort((a,b)=>b.alerts12 - a.alerts12)
-  .slice(0,4)
+  .slice(0,6)  // הצג 6 במקום 4 – יותר רלוונטי עכשיו
   .map(c => `• ${c.name} (${c.alerts12})`).join('<br>');
 
 let selectedMarker = null;
