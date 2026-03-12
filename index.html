@@ -183,7 +183,7 @@
 </div>
 
 <script>
-// רשימה מורחבת עם אזור הערבה
+// רשימה מורחבת עם אזור הערבה, חדרה וחריש
 const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts12: 9 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts12: 3 },
@@ -202,7 +202,7 @@ const cities = [
   { name: "אזור אילת", lat: 29.5577, lon: 34.9519, alerts12: 0 },
   { name: "אזור ירוחם", lat: 30.9875, lon: 34.9281, alerts12: 1 },
   { name: "אזור ים המלח", lat: 31.35, lon: 35.45, alerts12: 1 },
-  { name: "אזור הערבה", lat: 30.65, lon: 35.20, alerts12: 1 }, // מיקום מרכזי בערבה
+  { name: "אזור הערבה", lat: 30.65, lon: 35.20, alerts12: 1 },
   { name: "אזור כנרת / טבריה", lat: 32.795, lon: 35.53, alerts12: 12 },
   { name: "אזור גליל תחתון", lat: 32.92, lon: 35.35, alerts12: 15 },
   { name: "אזור גליל עליון", lat: 33.00, lon: 35.45, alerts12: 28 },
@@ -217,7 +217,9 @@ const cities = [
   { name: "אזור בת ים", lat: 32.0132, lon: 34.7480, alerts12: 7 },
   { name: "אזור רמת גן", lat: 32.0684, lon: 34.8248, alerts12: 8 },
   { name: "אזור חולון", lat: 32.0158, lon: 34.7874, alerts12: 7 },
-  { name: "אזור בני ברק", lat: 32.0849, lon: 34.8352, alerts12: 8 }
+  { name: "אזור בני ברק", lat: 32.0849, lon: 34.8352, alerts12: 8 },
+  { name: "אזור חדרה", lat: 32.434, lon: 34.919, alerts12: 5 },
+  { name: "אזור חריש", lat: 32.463, lon: 35.047, alerts12: 3 }
 ];
 
 const total12 = cities.reduce((sum, c) => sum + c.alerts12, 0);
@@ -229,10 +231,10 @@ document.getElementById('top-zones').innerHTML = cities
 
 let selectedMarker = null;
 
-// מפה – מוגבלת לאזור ישראל (עם קצת יותר מרווח לדרום כדי לראות את הערבה טוב)
+// מפה – מוגבלת לאזור ישראל (עם קצת יותר מרווח לדרום/צפון)
 const israelBounds = L.latLngBounds(
-  L.latLng(33.40, 34.1),   // קצת יותר צפון
-  L.latLng(29.3, 35.9)     // קצת יותר דרום כדי לכלול ערבה + אילת
+  L.latLng(33.40, 34.1),
+  L.latLng(29.3, 35.9)
 );
 
 const map = L.map('map', {
