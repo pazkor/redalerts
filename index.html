@@ -183,7 +183,7 @@
 </div>
 
 <script>
-// רשימה מורחבת עם אזור הערבה, חדרה וחריש
+// רשימת אזורים
 const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts12: 9 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts12: 3 },
@@ -231,7 +231,7 @@ document.getElementById('top-zones').innerHTML = cities
 
 let selectedMarker = null;
 
-// מפה – מוגבלת לאזור ישראל (עם קצת יותר מרווח לדרום/צפון)
+// מפה – מוגבלת לאזור ישראל
 const israelBounds = L.latLngBounds(
   L.latLng(33.40, 34.1),
   L.latLng(29.3, 35.9)
@@ -252,12 +252,18 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות
+// בועות – עם ספי צבעים חדשים
 cities.forEach(city => {
   const prob = Math.min(99, Math.round((city.alerts12 / 12) * 100));
-  let color = '#10b981';
-  if (prob > 30) color = '#ef4444';
-  else if (prob > 10) color = '#f59e0b';
+  
+  let color = '#10b981'; // ירוק – נמוך
+  if (prob > 75) {
+    color = '#c53030'; // אדום בוהק מאוד (כהה ועז)
+  } else if (prob > 50) {
+    color = '#f6ad55'; // כתום-צהוב (בינוני-גבוה)
+  } else if (prob > 10) {
+    color = '#f6e05e'; // צהוב-כתום בהיר יותר
+  }
 
   const marker = L.circleMarker([city.lat, city.lon], {
     radius: 11,
@@ -265,7 +271,7 @@ cities.forEach(city => {
     color: '#ffffff',
     weight: 3,
     opacity: 1,
-    fillOpacity: 0.88
+    fillOpacity: prob > 75 ? 0.95 : 0.88 // בוהק יותר מעל 75%
   }).addTo(map);
 
   marker.city = city;
@@ -279,6 +285,19 @@ function selectCity(city, marker) {
   const prob = Math.min(99, Math.round((city.alerts12 / 12) * 100));
   document.getElementById('percentage').textContent = prob + " %";
   document.getElementById('fill').style.width = prob + "%";
+
+  // צבע התיבה מתאים לסף החדש
+  const box = document.getElementById('prob-box');
+  if (prob > 75) {
+    box.style.borderColor = '#c53030';
+    box.style.boxShadow = '0 0 20px rgba(197,48,48,0.5)';
+  } else if (prob > 50) {
+    box.style.borderColor = '#f6ad55';
+    box.style.boxShadow = '0 0 20px rgba(246,173,85,0.4)';
+  } else {
+    box.style.borderColor = '#4b5563';
+    box.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
+  }
 
   if (selectedMarker) selectedMarker.setStyle({radius: 11, weight: 3});
   if (marker) {
