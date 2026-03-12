@@ -252,17 +252,17 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות – עם ספי צבעים חדשים
+// בועות – צבעים אינטואיטיביים חדשים
 cities.forEach(city => {
   const prob = Math.min(99, Math.round((city.alerts12 / 12) * 100));
   
-  let color = '#10b981'; // ירוק – נמוך
+  let color = '#10b981';           // ירוק בהיר – בטוח
   if (prob > 75) {
-    color = '#c53030'; // אדום בוהק מאוד (כהה ועז)
+    color = '#c53030';             // אדום בוהק מאוד (כהה ועז)
   } else if (prob > 50) {
-    color = '#f6ad55'; // כתום-צהוב (בינוני-גבוה)
-  } else if (prob > 10) {
-    color = '#f6e05e'; // צהוב-כתום בהיר יותר
+    color = '#f56565';             // אדום-כתום בינוני
+  } else if (prob > 20) {
+    color = '#f6ad55';             // כתום-צהוב – זהירות
   }
 
   const marker = L.circleMarker([city.lat, city.lon], {
@@ -271,7 +271,7 @@ cities.forEach(city => {
     color: '#ffffff',
     weight: 3,
     opacity: 1,
-    fillOpacity: prob > 75 ? 0.95 : 0.88 // בוהק יותר מעל 75%
+    fillOpacity: prob > 75 ? 0.95 : (prob > 50 ? 0.92 : 0.88)
   }).addTo(map);
 
   marker.city = city;
@@ -290,8 +290,11 @@ function selectCity(city, marker) {
   const box = document.getElementById('prob-box');
   if (prob > 75) {
     box.style.borderColor = '#c53030';
-    box.style.boxShadow = '0 0 20px rgba(197,48,48,0.5)';
+    box.style.boxShadow = '0 0 25px rgba(197,48,48,0.6)';
   } else if (prob > 50) {
+    box.style.borderColor = '#f56565';
+    box.style.boxShadow = '0 0 20px rgba(245,101,101,0.4)';
+  } else if (prob > 20) {
     box.style.borderColor = '#f6ad55';
     box.style.boxShadow = '0 0 20px rgba(246,173,85,0.4)';
   } else {
