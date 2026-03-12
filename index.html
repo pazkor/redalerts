@@ -3,43 +3,157 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>סבירות צבע אדום – מפה</title>
+  <title>הסתברות התראות</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     * { box-sizing: border-box; margin:0; padding:0; }
-    body { font-family: system-ui, sans-serif; background:#0d1117; color:#e6edf3; direction:rtl; min-height:100vh; display:flex; flex-direction:column; }
-    #alert-banner { display:none; background:linear-gradient(135deg,#dc2626,#ef4444); color:white; padding:14px 20px; font-size:clamp(1.1rem,4.5vw,1.6rem); font-weight:bold; text-align:center; box-shadow:0 4px 20px rgba(220,38,38,0.6); position:sticky; top:0; z-index:9999; animation:pulse 2s infinite; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      direction: rtl;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #alert-banner {
+      display: none;
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      color: white;
+      padding: 14px 20px;
+      font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(220,38,38,0.6);
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      animation: pulse 2s infinite;
+    }
     @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.9;} }
 
-    #map { flex:1; min-height:300px; }
-    .main-content { display:flex; flex:1; flex-direction:column; }
-    @media (min-width:900px) { .main-content { flex-direction:row; } #map { flex:2; } #sidebar { flex:1; max-width:340px; padding:16px; background:#111; border-left:2px solid #333; } }
+    #map { height: 45vh; min-height: 320px; }
 
-    .container { max-width:1200px; margin:0 auto; padding:12px 16px; }
-    h1 { text-align:center; color:#f87171; margin:12px 0; font-size:clamp(1.8rem,6vw,2.4rem); }
-    #search { width:100%; padding:12px 16px; font-size:clamp(1rem,4vw,1.25rem); margin:8px 0 16px; border:1px solid #444; border-radius:10px; background:#1f2937; color:white; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 16px;
+    }
 
-    #prob-box { background:#1f2937; border:1px solid #4b5563; border-radius:12px; padding:20px; text-align:center; margin:16px 0; box-shadow:0 6px 24px rgba(0,0,0,0.4); }
-    #percentage { font-size:clamp(4rem,15vw,7rem); font-weight:800; margin:8px 0; line-height:0.9; color:#f3f4f6; }
-    #bar { height:36px; background:#374151; border-radius:12px; overflow:hidden; margin:16px 0; }
-    #fill { height:100%; background:linear-gradient(90deg,#10b981,#f59e0b,#ef4444); transition:width 0.9s ease-out; }
-    #zone-name { font-size:clamp(1.6rem,5vw,2.2rem); margin-bottom:12px; color:#e5e7eb; }
-    #explain { font-size:clamp(0.95rem,3.5vw,1.1rem); color:#9ca3af; }
+    h1 {
+      text-align: center;
+      color: #f87171;
+      margin: 16px 0 12px;
+      font-size: clamp(1.8rem, 6vw, 2.4rem);
+    }
 
-    .stat { margin:12px 0; padding:12px; background:#1a1a1a; border-radius:8px; }
-    .stat-label { font-size:0.95rem; color:#aaa; }
-    .stat-value { font-size:1.35rem; font-weight:bold; color:#ffcc00; }
+    #prob-box {
+      background: #1f2937;
+      border: 1px solid #4b5563;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin: 16px 0 24px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+    }
 
-    .legend { position:absolute; bottom:16px; right:16px; z-index:1000; background:rgba(31,41,55,0.92); border:1px solid #4b5563; border-radius:10px; padding:10px 14px; font-size:clamp(0.85rem,3vw,0.95rem); box-shadow:0 4px 16px rgba(0,0,0,0.5); max-width:190px; }
-    .legend-item { display:flex; align-items:center; margin:6px 0; }
-    .legend-color { width:22px; height:22px; border-radius:50%; margin-left:10px; border:2px solid #4b5563; }
+    #percentage {
+      font-size: clamp(4rem, 15vw, 7rem);
+      font-weight: 800;
+      margin: 8px 0;
+      line-height: 0.9;
+      color: #f3f4f6;
+    }
 
-    @media (max-width:600px) { .container { padding:8px 12px; } #prob-box { padding:16px; } .legend { bottom:8px; right:8px; padding:8px 12px; max-width:160px; } }
+    #bar {
+      height: 36px;
+      background: #374151;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    #fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+      transition: width 0.9s ease-out;
+    }
+
+    #zone-name {
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      margin-bottom: 12px;
+      color: #e5e7eb;
+    }
+
+    #explain {
+      font-size: clamp(0.95rem, 3.5vw, 1.1rem);
+      color: #9ca3af;
+    }
+
+    #status {
+      text-align: center;
+      font-size: clamp(1rem, 3.5vw, 1.2rem);
+      margin: 16px 0;
+      padding: 12px;
+      border-radius: 10px;
+      background: #1f2937;
+    }
+
+    .stats-section {
+      padding: 0 16px 24px;
+      background: #0d1117;
+    }
+
+    .stat {
+      margin: 16px 0;
+      padding: 16px;
+      background: #1a1a1a;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ffcc00;
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 1000;
+      background: rgba(31,41,55,0.92);
+      border: 1px solid #4b5563;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: clamp(0.85rem, 3vw, 0.95rem);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      max-width: 190px;
+    }
+
+    .legend-item { display: flex; align-items: center; margin: 6px 0; }
+    .legend-color { width: 22px; height: 22px; border-radius: 50%; margin-left: 10px; border: 2px solid #4b5563; }
+
+    @media (max-width: 768px) {
+      #map { height: 50vh; min-height: 340px; }
+      .stats-section { padding: 0 12px 32px; }
+      .stat { padding: 14px; margin: 14px 0; }
+      .legend { bottom: 10px; right: 10px; padding: 8px 12px; font-size: 0.9rem; max-width: 160px; }
+    }
   </style>
 </head>
 <body>
 
+<!-- באנר התרעות -->
 <div id="alert-banner">
   🚨 <span id="banner-text">התרעות פעילות עכשיו!</span>
   <div id="banner-zones" style="font-size:0.95rem; margin-top:8px;"></div>
@@ -47,41 +161,39 @@
 
 <div class="container">
   <h1>סבירות צבע אדום – מפה</h1>
-  <input type="text" id="search" placeholder="חפש עיר או אזור..."/>
 </div>
 
-<div class="main-content">
-  <div id="map"></div>
-
-  <!-- סטטיסטיקות -->
-  <div id="sidebar">
-    <div class="stat">
-      <div class="stat-label">סה"כ התרעות ב-12 הימים האחרונים</div>
-      <div class="stat-value" id="total12">237</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">שינוי מהשבוע שעבר</div>
-      <div class="stat-value" id="trend">+23%</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">התרעות פעילות כרגע</div>
-      <div class="stat-value" id="live-count">0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">האזורים הכי פעילים</div>
-      <div id="top-zones" style="font-size:0.95rem; line-height:1.4;"></div>
-    </div>
-  </div>
-</div>
+<div id="map"></div>
 
 <div class="container">
   <div id="prob-box">
-    <div id="zone-name">לחץ על בועה במפה או חפש</div>
+    <div id="zone-name">לחץ על בועה במפה</div>
     <div id="percentage">— %</div>
     <div id="bar"><div id="fill" style="width:0%"></div></div>
     <div id="explain">סבירות משוערת להתרעה **היום** (מבוסס על 12 הימים האחרונים)</div>
   </div>
+
   <div id="status">טוען מפה...</div>
+</div>
+
+<!-- סטטיסטיקות – מתחת לכל דבר במובייל -->
+<div class="stats-section">
+  <div class="stat">
+    <div class="stat-label">סה"כ התרעות ב-12 הימים האחרונים</div>
+    <div class="stat-value" id="total12">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">שינוי מהשבוע שעבר</div>
+    <div class="stat-value" id="trend">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">התרעות פעילות כרגע</div>
+    <div class="stat-value" id="live-count">0</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">האזורים הכי פעילים</div>
+    <div id="top-zones" style="font-size:0.95rem; line-height:1.5; margin-top:8px;"></div>
+  </div>
 </div>
 
 <div class="legend">
@@ -92,7 +204,7 @@
 </div>
 
 <script>
-// ערים + ים המלח
+// נתונים
 const cities = [
   { name: "תל אביב", lat: 32.0853, lon: 34.7818, alerts12: 9 },
   { name: "ירושלים", lat: 31.7683, lon: 35.2137, alerts12: 3 },
@@ -116,7 +228,7 @@ const cities = [
 const total12 = cities.reduce((sum, c) => sum + c.alerts12, 0);
 document.getElementById('total12').textContent = total12;
 document.getElementById('top-zones').innerHTML = cities
-  .sort((a,b)=>b.alerts12-a.alerts12)
+  .sort((a,b)=>b.alerts12 - a.alerts12)
   .slice(0,4)
   .map(c => `• ${c.name} (${c.alerts12})`).join('<br>');
 
@@ -153,17 +265,6 @@ cities.forEach(city => {
   marker.on('click', () => selectCity(city, marker));
 });
 
-// חיפוש
-document.getElementById('search').addEventListener('input', e => {
-  const q = e.target.value.trim().toLowerCase();
-  if (!q) return;
-  const match = cities.find(c => c.name.toLowerCase().includes(q));
-  if (match) {
-    selectCity(match, null);
-    map.flyTo([match.lat, match.lon], 12);
-  }
-});
-
 function selectCity(city, marker) {
   document.getElementById('zone-name').textContent = city.name;
   const prob = Math.min(99, Math.round((city.alerts12 / 12) * 100));
@@ -177,7 +278,7 @@ function selectCity(city, marker) {
   }
 }
 
-// באנר + סטטיסטיקה חיה
+// התרעות בזמן אמת (עם proxy)
 const PROXY = 'https://api.allorigins.win/raw?url=';
 const OREF_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
 
@@ -199,7 +300,7 @@ async function checkAlerts() {
     } else {
       banner.style.display = 'none';
       liveCount.textContent = '0';
-      liveCount.style.color = '#22c55e';
+      liveCount.style.color = '#10b981';
     }
   } catch(e) {}
 }
