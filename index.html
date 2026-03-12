@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>הסתברות התראות</title>
+  <title>מה הסיכוי להתראה?</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     * { box-sizing: border-box; margin:0; padding:0; }
     body {
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       background: #0d1117;
       color: #e6edf3;
       direction: rtl;
@@ -22,8 +22,8 @@
       display: none;
       background: linear-gradient(135deg, #dc2626, #ef4444);
       color: white;
-      padding: 14px 20px;
-      font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+      padding: 16px 20px;
+      font-size: clamp(1.2rem, 5vw, 1.7rem);
       font-weight: bold;
       text-align: center;
       box-shadow: 0 4px 20px rgba(220,38,38,0.6);
@@ -32,122 +32,130 @@
       z-index: 9999;
       animation: pulse 2s infinite;
     }
-    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.9;} }
+    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.92;} }
 
-    #map { height: 45vh; min-height: 320px; }
+    #map {
+      height: 45vh;
+      min-height: 340px;
+      width: 100%;
+    }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 12px 16px;
+      padding: 0 16px;
     }
 
     h1 {
       text-align: center;
       color: #f87171;
-      margin: 16px 0 12px;
-      font-size: clamp(1.8rem, 6vw, 2.4rem);
+      margin: 20px 0 16px;
+      font-size: clamp(1.9rem, 7vw, 2.6rem);
+      font-weight: 700;
     }
 
     #prob-box {
       background: #1f2937;
       border: 1px solid #4b5563;
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 24px 16px;
       text-align: center;
-      margin: 16px 0 24px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+      margin: 20px 0 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
     #percentage {
-      font-size: clamp(4rem, 15vw, 7rem);
-      font-weight: 800;
+      font-size: clamp(5rem, 18vw, 8rem);
+      font-weight: 900;
       margin: 8px 0;
-      line-height: 0.9;
+      line-height: 0.85;
       color: #f3f4f6;
     }
 
     #bar {
-      height: 36px;
+      height: 40px;
       background: #374151;
       border-radius: 12px;
       overflow: hidden;
-      margin: 16px 0;
+      margin: 20px 0;
     }
 
     #fill {
       height: 100%;
       background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
-      transition: width 0.9s ease-out;
+      transition: width 1s ease-out;
     }
 
     #zone-name {
-      font-size: clamp(1.6rem, 5vw, 2.2rem);
-      margin-bottom: 12px;
+      font-size: clamp(1.8rem, 6vw, 2.4rem);
+      margin-bottom: 16px;
       color: #e5e7eb;
     }
 
     #explain {
-      font-size: clamp(0.95rem, 3.5vw, 1.1rem);
+      font-size: clamp(1rem, 3.8vw, 1.15rem);
       color: #9ca3af;
+      line-height: 1.4;
     }
 
     #status {
       text-align: center;
-      font-size: clamp(1rem, 3.5vw, 1.2rem);
-      margin: 16px 0;
+      font-size: clamp(1.05rem, 4vw, 1.25rem);
+      margin: 20px 0 32px;
       padding: 12px;
-      border-radius: 10px;
+      border-radius: 12px;
       background: #1f2937;
     }
 
     .stats-section {
-      padding: 0 16px 24px;
+      padding: 0 16px 40px;
       background: #0d1117;
     }
 
     .stat {
-      margin: 16px 0;
-      padding: 16px;
+      margin: 20px 0;
+      padding: 18px;
       background: #1a1a1a;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border-radius: 12px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.35);
     }
 
     .stat-label {
-      font-size: 0.95rem;
+      font-size: 1rem;
       color: #9ca3af;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .stat-value {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: bold;
       color: #ffcc00;
     }
 
     .legend {
       position: absolute;
-      bottom: 16px;
-      right: 16px;
+      bottom: 20px;
+      right: 20px;
       z-index: 1000;
-      background: rgba(31,41,55,0.92);
+      background: rgba(31,41,55,0.94);
       border: 1px solid #4b5563;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: clamp(0.85rem, 3vw, 0.95rem);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-      max-width: 190px;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: clamp(0.9rem, 3.2vw, 1rem);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      max-width: 210px;
     }
 
-    .legend-item { display: flex; align-items: center; margin: 6px 0; }
-    .legend-color { width: 22px; height: 22px; border-radius: 50%; margin-left: 10px; border: 2px solid #4b5563; }
+    .legend-item { display: flex; align-items: center; margin: 8px 0; }
+    .legend-color { width: 24px; height: 24px; border-radius: 50%; margin-left: 12px; border: 2px solid #4b5563; }
 
     @media (max-width: 768px) {
-      #map { height: 50vh; min-height: 340px; }
-      .stats-section { padding: 0 12px 32px; }
-      .stat { padding: 14px; margin: 14px 0; }
-      .legend { bottom: 10px; right: 10px; padding: 8px 12px; font-size: 0.9rem; max-width: 160px; }
+      #map { height: 50vh; min-height: 360px; }
+      h1 { margin: 16px 0 12px; }
+      #prob-box { padding: 20px 14px; margin: 16px 0 28px; }
+      .stats-section { padding: 0 12px 48px; }
+      .stat { padding: 16px; margin: 18px 0; }
+      .legend { bottom: 12px; right: 12px; padding: 10px 14px; font-size: 0.92rem; max-width: 180px; }
     }
   </style>
 </head>
@@ -156,11 +164,11 @@
 <!-- באנר התרעות -->
 <div id="alert-banner">
   🚨 <span id="banner-text">התרעות פעילות עכשיו!</span>
-  <div id="banner-zones" style="font-size:0.95rem; margin-top:8px;"></div>
+  <div id="banner-zones" style="font-size:0.98rem; margin-top:10px; opacity:0.96;"></div>
 </div>
 
 <div class="container">
-  <h1>סיכוי להתראות</h1>
+  <h1>מה הסיכוי להתראה?</h1>
 </div>
 
 <div id="map"></div>
@@ -176,7 +184,7 @@
   <div id="status">טוען מפה...</div>
 </div>
 
-<!-- סטטיסטיקות – מתחת לכל דבר במובייל -->
+<!-- סטטיסטיקות – תמיד מתחת לכל דבר -->
 <div class="stats-section">
   <div class="stat">
     <div class="stat-label">סה"כ התרעות ב-12 הימים האחרונים</div>
@@ -192,7 +200,7 @@
   </div>
   <div class="stat">
     <div class="stat-label">האזורים הכי פעילים</div>
-    <div id="top-zones" style="font-size:0.95rem; line-height:1.5; margin-top:8px;"></div>
+    <div id="top-zones" style="font-size:1rem; line-height:1.6; margin-top:10px;"></div>
   </div>
 </div>
 
@@ -204,7 +212,7 @@
 </div>
 
 <script>
-// נתונים
+// נתונים (כולל ים המלח)
 const cities = [
   { name: "תל אביב", lat: 32.0853, lon: 34.7818, alerts12: 9 },
   { name: "ירושלים", lat: 31.7683, lon: 35.2137, alerts12: 3 },
@@ -235,7 +243,7 @@ document.getElementById('top-zones').innerHTML = cities
 let selectedMarker = null;
 
 // מפה
-const map = L.map('map').setView([31.9, 34.9], 8);
+const map = L.map('map', { zoomControl: true }).setView([31.9, 34.9], 8);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '© OpenStreetMap © CARTO',
   maxZoom: 19
@@ -243,7 +251,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות
+// בועות צבעוניות
 cities.forEach(city => {
   const prob = Math.min(99, Math.round((city.alerts12 / 12) * 100));
   let color = '#10b981';
@@ -296,7 +304,7 @@ async function checkAlerts() {
       document.getElementById('banner-text').textContent = `התרעות פעילות עכשיו (${data.length})`;
       document.getElementById('banner-zones').innerHTML = data.slice(0,10).join(' • ');
       liveCount.textContent = data.length;
-      liveCount.style.color = '#ff4444';
+      liveCount.style.color = '#ef4444';
     } else {
       banner.style.display = 'none';
       liveCount.textContent = '0';
