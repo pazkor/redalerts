@@ -183,7 +183,7 @@
 </div>
 
 <script>
-// רשימה מורחבת מאוד של אזורים + ערים
+// רשימה מורחבת עם אזור הערבה
 const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts12: 9 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts12: 3 },
@@ -202,6 +202,7 @@ const cities = [
   { name: "אזור אילת", lat: 29.5577, lon: 34.9519, alerts12: 0 },
   { name: "אזור ירוחם", lat: 30.9875, lon: 34.9281, alerts12: 1 },
   { name: "אזור ים המלח", lat: 31.35, lon: 35.45, alerts12: 1 },
+  { name: "אזור הערבה", lat: 30.65, lon: 35.20, alerts12: 1 }, // מיקום מרכזי בערבה
   { name: "אזור כנרת / טבריה", lat: 32.795, lon: 35.53, alerts12: 12 },
   { name: "אזור גליל תחתון", lat: 32.92, lon: 35.35, alerts12: 15 },
   { name: "אזור גליל עליון", lat: 33.00, lon: 35.45, alerts12: 28 },
@@ -223,20 +224,20 @@ const total12 = cities.reduce((sum, c) => sum + c.alerts12, 0);
 document.getElementById('total12').textContent = total12;
 document.getElementById('top-zones').innerHTML = cities
   .sort((a,b)=>b.alerts12 - a.alerts12)
-  .slice(0,6)  // הצג 6 במקום 4 – יותר רלוונטי עכשיו
+  .slice(0,6)
   .map(c => `• ${c.name} (${c.alerts12})`).join('<br>');
 
 let selectedMarker = null;
 
-// מפה – מוגבלת לאזור ישראל
+// מפה – מוגבלת לאזור ישראל (עם קצת יותר מרווח לדרום כדי לראות את הערבה טוב)
 const israelBounds = L.latLngBounds(
-  L.latLng(33.35, 34.2),
-  L.latLng(29.4, 35.8)
+  L.latLng(33.40, 34.1),   // קצת יותר צפון
+  L.latLng(29.3, 35.9)     // קצת יותר דרום כדי לכלול ערבה + אילת
 );
 
 const map = L.map('map', {
   zoomControl: true,
-  minZoom: 8,
+  minZoom: 7.5,
   maxZoom: 14,
   maxBounds: israelBounds,
   maxBoundsViscosity: 0.95
