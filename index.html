@@ -217,8 +217,20 @@ document.getElementById('top-zones').innerHTML = cities
 
 let selectedMarker = null;
 
-// מפה
-const map = L.map('map', { zoomControl: true }).setView([31.9, 34.9], 8);
+// מפה – מוגבלת לאזור ישראל
+const israelBounds = L.latLngBounds(
+  L.latLng(33.35, 34.2),   // צפון-מזרח (גבול לבנון/סוריה)
+  L.latLng(29.4, 35.8)     // דרום-מזרח (אילת + ים המלח)
+);
+
+const map = L.map('map', {
+  zoomControl: true,
+  minZoom: 8,                // לא ניתן להתקרב יותר מדי
+  maxZoom: 14,               // לא ניתן להתרחק יותר מדי
+  maxBounds: israelBounds,   // גבולות המפה
+  maxBoundsViscosity: 0.95   // "דביקות" כשמנסים לצאת מהגבולות
+}).fitBounds(israelBounds);
+
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '© OpenStreetMap © CARTO',
   maxZoom: 19
