@@ -166,15 +166,11 @@
   <div id="status">טוען מפה...</div>
 </div>
 
-<!-- סטטיסטיקות -->
+<!-- סטטיסטיקות (בלי שינוי מהשבוע/3 ימים) -->
 <div class="stats-section">
   <div class="stat">
     <div class="stat-label">סה"כ התרעות ב-12 הימים האחרונים</div>
     <div class="stat-value" id="total12">—</div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">שינוי מהשבוע שעבר</div>
-    <div class="stat-value" id="trend">—</div>
   </div>
   <div class="stat">
     <div class="stat-label">התרעות פעילות כרגע</div>
@@ -187,25 +183,25 @@
 </div>
 
 <script>
-// נתונים (כולל ים המלח)
+// נתונים – עם "אזור" מובנה
 const cities = [
-  { name: "תל אביב", lat: 32.0853, lon: 34.7818, alerts12: 9 },
-  { name: "ירושלים", lat: 31.7683, lon: 35.2137, alerts12: 3 },
-  { name: "חיפה", lat: 32.7940, lon: 34.9896, alerts12: 2 },
-  { name: "ראשון לציון", lat: 31.9730, lon: 34.7925, alerts12: 6 },
-  { name: "פתח תקווה", lat: 32.0840, lon: 34.8878, alerts12: 7 },
-  { name: "אשדוד", lat: 31.8044, lon: 34.6553, alerts12: 5 },
-  { name: "נתניה", lat: 32.3215, lon: 34.8532, alerts12: 5 },
-  { name: "באר שבע", lat: 31.2520, lon: 34.7915, alerts12: 4 },
-  { name: "מודיעין", lat: 31.8939, lon: 35.0150, alerts12: 8 },
-  { name: "קריית שמונה", lat: 33.2079, lon: 35.5698, alerts12: 38 },
-  { name: "מטולה", lat: 33.2792, lon: 35.5773, alerts12: 26 },
-  { name: "שדרות", lat: 31.5293, lon: 34.5965, alerts12: 4 },
-  { name: "נהריה", lat: 33.0085, lon: 35.0980, alerts12: 6 },
-  { name: "עכו", lat: 32.9278, lon: 35.0780, alerts12: 5 },
-  { name: "אילת", lat: 29.5577, lon: 34.9519, alerts12: 0 },
-  { name: "ירוחם", lat: 30.9875, lon: 34.9281, alerts12: 1 },
-  { name: "ים המלח", lat: 31.35, lon: 35.45, alerts12: 1 }
+  { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts12: 9 },
+  { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts12: 3 },
+  { name: "אזור חיפה", lat: 32.7940, lon: 34.9896, alerts12: 2 },
+  { name: "אזור ראשון לציון", lat: 31.9730, lon: 34.7925, alerts12: 6 },
+  { name: "אזור פתח תקווה", lat: 32.0840, lon: 34.8878, alerts12: 7 },
+  { name: "אזור אשדוד", lat: 31.8044, lon: 34.6553, alerts12: 5 },
+  { name: "אזור נתניה", lat: 32.3215, lon: 34.8532, alerts12: 5 },
+  { name: "אזור באר שבע", lat: 31.2520, lon: 34.7915, alerts12: 4 },
+  { name: "אזור מודיעין", lat: 31.8939, lon: 35.0150, alerts12: 8 },
+  { name: "אזור קריית שמונה", lat: 33.2079, lon: 35.5698, alerts12: 38 },
+  { name: "אזור מטולה", lat: 33.2792, lon: 35.5773, alerts12: 26 },
+  { name: "אזור שדרות", lat: 31.5293, lon: 34.5965, alerts12: 4 },
+  { name: "אזור נהריה", lat: 33.0085, lon: 35.0980, alerts12: 6 },
+  { name: "אזור עכו", lat: 32.9278, lon: 35.0780, alerts12: 5 },
+  { name: "אזור אילת", lat: 29.5577, lon: 34.9519, alerts12: 0 },
+  { name: "אזור ירוחם", lat: 30.9875, lon: 34.9281, alerts12: 1 },
+  { name: "אזור ים המלח", lat: 31.35, lon: 35.45, alerts12: 1 }
 ];
 
 const total12 = cities.reduce((sum, c) => sum + c.alerts12, 0);
@@ -219,16 +215,16 @@ let selectedMarker = null;
 
 // מפה – מוגבלת לאזור ישראל
 const israelBounds = L.latLngBounds(
-  L.latLng(33.35, 34.2),   // צפון-מזרח (גבול לבנון/סוריה)
-  L.latLng(29.4, 35.8)     // דרום-מזרח (אילת + ים המלח)
+  L.latLng(33.35, 34.2),
+  L.latLng(29.4, 35.8)
 );
 
 const map = L.map('map', {
   zoomControl: true,
-  minZoom: 8,                // לא ניתן להתקרב יותר מדי
-  maxZoom: 14,               // לא ניתן להתרחק יותר מדי
-  maxBounds: israelBounds,   // גבולות המפה
-  maxBoundsViscosity: 0.95   // "דביקות" כשמנסים לצאת מהגבולות
+  minZoom: 8,
+  maxZoom: 14,
+  maxBounds: israelBounds,
+  maxBoundsViscosity: 0.95
 }).fitBounds(israelBounds);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -238,7 +234,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות צבעוניות
+// בועות
 cities.forEach(city => {
   const prob = Math.min(99, Math.round((city.alerts12 / 12) * 100));
   let color = '#10b981';
