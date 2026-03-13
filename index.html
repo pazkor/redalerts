@@ -190,7 +190,7 @@
   <div id="banner-zones" style="font-size:1rem; margin-top:10px;"></div>
 </div>
 
-<!-- שעון + תאריך + יום + תאריך עברי + יום למלחמה -->
+<!-- שעון + תאריך (ללא תאריך עברי) -->
 <div id="clock-bar">
   <span id="clock"></span>
 </div>
@@ -231,7 +231,7 @@
 </div>
 
 <script>
-// רשימת אזורים (כולל גדרה, קריית גת, בית שמש, טמרה)
+// רשימת אזורים (כולל כל ההוספות הקודמות)
 const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts4: 3 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts4: 1 },
@@ -331,25 +331,15 @@ function selectCity(city, marker, prob) {
   box.classList.toggle('high', prob > 75);
 }
 
-// שעון + תאריך + יום + תאריך עברי (בלי שנה) + יום למלחמה
+// שעון + תאריך + יום (ללא תאריך עברי)
 function updateClock() {
   const now = new Date();
   const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-  const hebrewMonths = ['תשרי', 'חשוון', 'כסלו', 'טבת', 'שבט', 'אדר', 'ניסן', 'אייר', 'סיון', 'תמוז', 'אב', 'אלול'];
-
-  const gregorian = now.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
+  const options = { weekday: 'long', day: 'numeric', month: 'long' };
+  const dateStr = now.toLocaleDateString('he-IL', options);
   const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
 
-  const hebrewDay = now.getDate();
-  const hebrewMonth = hebrewMonths[(now.getMonth() + 3) % 12];
-  const hebrew = `${hebrewDay} ${hebrewMonth}`;
-
-  // יום למלחמה – מתחיל מ-28/2/2026
-  const warStart = new Date(2026, 1, 28); // פברואר = 1
-  const diffTime = now - warStart;
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 כדי ש-28/2 יהיה יום 1
-
-  document.getElementById('clock').innerHTML = `${gregorian} • ${timeStr} | ${hebrew} • יום ${diffDays} למלחמה`;
+  document.getElementById('clock').innerHTML = `${dateStr} • ${timeStr}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
