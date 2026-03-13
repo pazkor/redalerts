@@ -17,7 +17,6 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
     }
 
     #alert-banner {
@@ -34,9 +33,17 @@
       top: 0;
       z-index: 9999;
       animation: flash 1.1s infinite alternate;
-      border-bottom: 4px solid #ff4444;
     }
     @keyframes flash { from {opacity:0.88;} to {opacity:1;} }
+
+    #clock-bar {
+      background: #111;
+      padding: 10px 16px;
+      font-size: 1.05rem;
+      color: #88ffaa;
+      text-align: center;
+      border-bottom: 1px solid #333;
+    }
 
     #map { flex: 1; min-height: 340px; background: #000; }
 
@@ -45,35 +52,32 @@
     h1 {
       text-align: center;
       color: #ff4444;
-      margin: 16px 0 12px;
-      font-size: clamp(1.85rem, 6.5vw, 2.8rem);
-      text-shadow: 0 0 15px #ff0000;
-      letter-spacing: 2px;
+      margin: 12px 0 8px;
+      font-size: clamp(1.8rem, 6.5vw, 2.5rem);
+      text-shadow: 0 0 12px #ff0000;
     }
 
     #prob-box {
       background: #0f1419;
       border: 2px solid #00ff41;
       border-radius: 8px;
-      padding: 20px 16px;
+      padding: 18px 14px;
       text-align: center;
-      margin: 16px 0 28px;
+      margin: 16px 0 24px;
       box-shadow: 0 0 25px rgba(0,255,65,0.3);
-      transition: all 0.4s;
     }
 
     #prob-box.high {
       border-color: #ff4444;
-      box-shadow: 0 0 40px rgba(255,68,68,0.7);
+      box-shadow: 0 0 35px rgba(255,68,68,0.6);
     }
 
     #percentage {
-      font-size: clamp(5.2rem, 17vw, 8.5rem);
+      font-size: clamp(5rem, 17vw, 8rem);
       font-weight: 900;
       margin: 0;
       line-height: 0.85;
       color: #00ff41;
-      text-shadow: 0 0 20px #00ff41;
     }
 
     #bar {
@@ -82,7 +86,7 @@
       border: 1px solid #444;
       border-radius: 6px;
       overflow: hidden;
-      margin: 18px 0;
+      margin: 16px 0;
     }
 
     #fill {
@@ -92,72 +96,115 @@
     }
 
     #zone-name {
-      font-size: clamp(1.75rem, 5.5vw, 2.3rem);
-      margin-bottom: 14px;
+      font-size: clamp(1.7rem, 5.5vw, 2.3rem);
+      margin-bottom: 12px;
       color: #00ff88;
-      text-shadow: 0 0 10px #00ff88;
     }
 
     #explain {
       font-size: clamp(1rem, 3.6vw, 1.2rem);
       color: #88ffaa;
-      line-height: 1.4;
     }
 
     #status {
       text-align: center;
       font-size: clamp(1.05rem, 3.8vw, 1.25rem);
-      margin: 16px 0 28px;
-      padding: 12px;
+      margin: 16px 0 24px;
+      padding: 10px 16px;
       border-radius: 8px;
       background: #111;
       border: 1px solid #333;
       color: #00cc66;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      background: #00ff41;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #00ff41, 0 0 24px #00ff41;
+      animation: pulse-dot 2s infinite;
+    }
+
+    #status.alert-active .pulse-dot {
+      background: #ff4444;
+      box-shadow: 0 0 16px #ff4444, 0 0 32px #ff0000;
+      animation: pulse-dot-alert 1.2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.4); opacity: 1; }
+    }
+
+    @keyframes pulse-dot-alert {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.6); opacity: 1; }
     }
 
     .stats-section {
-      padding: 0 16px 40px;
+      padding: 0 16px 32px;
       background: #0d1117;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
+      gap: 16px;
     }
 
     .stat {
-      padding: 18px;
+      padding: 16px;
       background: #111;
       border: 1px solid #333;
       border-radius: 8px;
-      box-shadow: 0 0 15px rgba(0,255,65,0.15);
       text-align: center;
     }
 
     .stat-label {
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: #88ffaa;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .stat-value {
-      font-size: 1.95rem;
+      font-size: 1.8rem;
       font-weight: bold;
       color: #ffcc00;
-      text-shadow: 0 0 10px #ffcc00;
+    }
+
+    #last-alert {
+      text-align: center;
+      font-size: 1rem;
+      color: #ffaa00;
+      margin: 12px 0 20px;
+      min-height: 24px;
+      padding: 8px;
+      background: #111;
+      border-radius: 6px;
+      border: 1px solid #444;
     }
 
     @media (max-width: 768px) {
-      #map { height: 48vh; min-height: 350px; }
-      h1 { margin: 14px 0 10px; }
-      #prob-box { padding: 18px 14px; margin: 14px 0 24px; }
-      .stats-section { grid-template-columns: 1fr; gap: 14px; padding: 0 12px 40px; }
+      #map { height: 48vh; min-height: 340px; }
+      h1 { margin: 12px 0 8px; }
+      #prob-box { padding: 16px 12px; margin: 12px 0 20px; }
+      .stats-section { padding: 0 12px 32px; gap: 12px; }
     }
   </style>
 </head>
 <body>
 
+<!-- באנר התרעות -->
 <div id="alert-banner">
   🚨 <span id="banner-text">התרעות פעילות – סכנה מיידית!</span>
-  <div id="banner-zones" style="font-size:1rem; margin-top:12px;"></div>
+  <div id="banner-zones" style="font-size:1rem; margin-top:10px;"></div>
+</div>
+
+<!-- שעון + תאריך -->
+<div id="clock-bar">
+  <span id="clock"></span>
 </div>
 
 <div class="container">
@@ -168,13 +215,18 @@
 
 <div class="container">
   <div id="prob-box">
-    <div id="zone-name">לחץ על אזור  במפה</div>
+    <div id="zone-name">לחץ על אזור במפה</div>
     <div id="percentage">— %</div>
     <div id="bar"><div id="fill" style="width:0%"></div></div>
     <div id="explain">סבירות משוערת להתרעה **היום** (מבוסס על 4 הימים האחרונים + מודל שחיקה)</div>
   </div>
 
-  <div id="status">מערכת פעילה • מחכה לנתונים...</div>
+  <div id="last-alert">התראה אחרונה: ממתין לנתונים...</div>
+
+  <div id="status">
+    <span class="pulse-dot"></span>
+    מערכת פעילה • ממתינה לנתונים...
+  </div>
 </div>
 
 <div class="stats-section">
@@ -193,7 +245,7 @@
 </div>
 
 <script>
-// נתונים + שחיקה (3% ליום)
+// רשימת אזורים (הוסף/שנה כרצונך)
 const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts4: 3 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts4: 1 },
@@ -232,10 +284,6 @@ const cities = [
   { name: "אזור חריש", lat: 32.463, lon: 35.047, alerts4: 1 }
 ];
 
-// שחיקה של 3% ליום (14 יום מאז תחילת ההסלמה)
-const daysSinceStart = 14;
-const decayFactor = Math.pow(0.97, daysSinceStart); // ≈ 0.66
-
 const total4 = cities.reduce((sum, c) => sum + c.alerts4, 0);
 document.getElementById('total4').textContent = total4;
 document.getElementById('top-zones').innerHTML = cities
@@ -245,22 +293,20 @@ document.getElementById('top-zones').innerHTML = cities
 
 let selectedMarker = null;
 
-// מפה
+// מפה מוגבלת
 const israelBounds = L.latLngBounds(L.latLng(33.40, 34.1), L.latLng(29.3, 35.9));
 const map = L.map('map', { minZoom: 7.5, maxZoom: 14, maxBounds: israelBounds, maxBoundsViscosity: 0.95 })
   .fitBounds(israelBounds);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap © CARTO'
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
 }).addTo(map);
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות + חישוב עם שחיקה
+// בועות
 cities.forEach(city => {
-  let raw = (city.alerts4 / 4) * 100;
-  let prob = Math.min(99, Math.round(raw * decayFactor));
-
+  const prob = Math.min(99, Math.round((city.alerts4 / 4) * 100));
   let color = '#10b981';
   if (prob > 75) color = '#c53030';
   else if (prob > 50) color = '#f56565';
@@ -271,6 +317,7 @@ cities.forEach(city => {
     fillColor: color,
     color: '#ffffff',
     weight: 3,
+    opacity: 1,
     fillOpacity: prob > 75 ? 0.95 : 0.88
   }).addTo(map);
 
@@ -289,8 +336,24 @@ function selectCity(city, marker, prob) {
   box.classList.toggle('high', prob > 75);
 }
 
+// שעון + תאריך (ללא שנה עברית)
+function updateClock() {
+  const now = new Date();
+  const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  const options = { weekday: 'long', day: 'numeric', month: 'long' };
+  const dateStr = now.toLocaleDateString('he-IL', options);
+  const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
+  document.getElementById('clock').innerHTML = `${dateStr} • ${timeStr}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// התרעות + שמירת התראה אחרונה
 const PROXY = 'https://api.allorigins.win/raw?url=';
 const OREF_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
+
+let lastAlertInfo = "התראה אחרונה: —";
 
 async function checkAlerts() {
   try {
@@ -299,14 +362,33 @@ async function checkAlerts() {
     const data = JSON.parse(text.replace(/^\uFEFF/, ''));
 
     const banner = document.getElementById('alert-banner');
+    const lastAlertEl = document.getElementById('last-alert');
+    const status = document.getElementById('status');
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
     if (Array.isArray(data) && data.length > 0) {
       banner.style.display = 'block';
       document.getElementById('banner-text').textContent = `התרעות פעילות – סכנה מיידית (${data.length})`;
       document.getElementById('banner-zones').innerHTML = data.slice(0,10).join(' • ');
+
+      // עדכון ושמירה של ההתראה האחרונה
+      lastAlertInfo = `התראה אחרונה: ${data.slice(0,5).join(', ')} • ${timeStr}`;
+      lastAlertEl.innerHTML = lastAlertInfo;
+
+      // נקודה אדומה מהבהבת
+      status.classList.add('alert-active');
+      status.innerHTML = `<span class="pulse-dot"></span> מערכת פעילה • התרעה פעילה!`;
     } else {
       banner.style.display = 'none';
+      lastAlertEl.innerHTML = lastAlertInfo; // שומר על ההתראה האחרונה
+      status.classList.remove('alert-active');
+      status.innerHTML = `<span class="pulse-dot"></span> מערכת פעילה • ממתינה לנתונים...`;
     }
-  } catch(e) {}
+  } catch(e) {
+    console.log('שגיאה בבדיקת התרעות:', e);
+  }
 }
 
 checkAlerts();
