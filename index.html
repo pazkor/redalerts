@@ -231,7 +231,7 @@
 </div>
 
 <script>
-// רשימת אזורים (עם רצפה 9% לאילת והערבה)
+// רשימת אזורים – עם התוספות החדשות: גדרה, קריית גת, בית שמש, טמרה
 const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts4: 3 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts4: 1 },
@@ -267,7 +267,11 @@ const cities = [
   { name: "אזור חולון", lat: 32.0158, lon: 34.7874, alerts4: 3 },
   { name: "אזור בני ברק", lat: 32.0849, lon: 34.8352, alerts4: 3 },
   { name: "אזור חדרה", lat: 32.434, lon: 34.919, alerts4: 2 },
-  { name: "אזור חריש", lat: 32.463, lon: 35.047, alerts4: 1 }
+  { name: "אזור חריש", lat: 32.463, lon: 35.047, alerts4: 1 },
+  { name: "אזור גדרה", lat: 31.812, lon: 34.779, alerts4: 2 },
+  { name: "אזור קריית גת", lat: 31.611, lon: 34.764, alerts4: 2 },
+  { name: "אזור בית שמש", lat: 31.747, lon: 34.988, alerts4: 2 },
+  { name: "אזור טמרה", lat: 32.853, lon: 35.199, alerts4: 3 }
 ];
 
 const total4 = cities.reduce((sum, c) => sum + c.alerts4, 0);
@@ -290,7 +294,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות
+// בועות עם רצפה 9% לאילת והערבה
 cities.forEach(city => {
   let raw = (city.alerts4 / 4) * 100;
   if (city.name.includes("אילת") || city.name.includes("ערבה")) {
@@ -333,15 +337,12 @@ function updateClock() {
   const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const hebrewMonths = ['תשרי', 'חשוון', 'כסלו', 'טבת', 'שבט', 'אדר', 'ניסן', 'אייר', 'סיון', 'תמוז', 'אב', 'אלול'];
 
-  // לועזי + יום
   const gregorian = now.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
-
-  // עברי פשוט (בלי שנה)
-  const hebrewDay = now.getDate();
-  const hebrewMonth = hebrewMonths[(now.getMonth() + 3) % 12]; // הערכה
-  const hebrew = `${hebrewDay} ${hebrewMonth}`;
-
   const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
+  const hebrewDay = now.getDate();
+  const hebrewMonth = hebrewMonths[(now.getMonth() + 3) % 12];
+  const hebrew = `${hebrewDay} ${hebrewMonth}`;
 
   document.getElementById('clock').innerHTML = `${gregorian} • ${timeStr} | ${hebrew}`;
 }
@@ -380,10 +381,10 @@ async function checkAlerts() {
 checkAlerts();
 setInterval(checkAlerts, 5000);
 
-// רענון אוטומטי של הדף כל 3 דקות
+// רענון אוטומטי כל 3 דקות
 setTimeout(() => {
   location.reload();
-}, 180000); // 180000 ms = 3 דקות
+}, 180000);
 </script>
 </body>
 </html>
