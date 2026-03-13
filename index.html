@@ -174,18 +174,6 @@
       color: #ffcc00;
     }
 
-    #last-alert {
-      text-align: center;
-      font-size: 1rem;
-      color: #ffaa00;
-      margin: 12px 0 20px;
-      min-height: 24px;
-      padding: 8px;
-      background: #111;
-      border-radius: 6px;
-      border: 1px solid #444;
-    }
-
     @media (max-width: 768px) {
       #map { height: 48vh; min-height: 340px; }
       h1 { margin: 12px 0 8px; }
@@ -221,8 +209,6 @@
     <div id="explain">סבירות משוערת להתרעה **היום** (מבוסס על 4 הימים האחרונים + מודל שחיקה)</div>
   </div>
 
-  <div id="last-alert">התראה אחרונה: ממתין לנתונים...</div>
-
   <div id="status">
     <span class="pulse-dot"></span>
     מערכת פעילה • ממתינה לנתונים...
@@ -245,7 +231,7 @@
 </div>
 
 <script>
-// רשימת אזורים (הוסף/שנה כרצונך)
+// רשימת אזורים (עם רצפה מינימלית 9% לאילת והערבה)
 const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts4: 3 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts4: 1 },
@@ -304,9 +290,17 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות
+// בועות – עם רצפה 9% לאילת והערבה
 cities.forEach(city => {
-  const prob = Math.min(99, Math.round((city.alerts4 / 4) * 100));
+  let raw = (city.alerts4 / 4) * 100;
+
+  // רצפה מינימלית 9% לאילת והערבה
+  if (city.name.includes("אילת") || city.name.includes("ערבה")) {
+    raw = Math.max(raw, 9);
+  }
+
+  const prob = Math.min(99, Math.round(raw));
+
   let color = '#10b981';
   if (prob > 75) color = '#c53030';
   else if (prob > 50) color = '#f56565';
@@ -336,7 +330,7 @@ function selectCity(city, marker, prob) {
   box.classList.toggle('high', prob > 75);
 }
 
-// שעון + תאריך (ללא שנה עברית)
+// שעון + תאריך
 function updateClock() {
   const now = new Date();
   const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -349,11 +343,9 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// התרעות + שמירת התראה אחרונה
+// התרעות בזמן אמת
 const PROXY = 'https://api.allorigins.win/raw?url=';
 const OREF_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
-
-let lastAlertInfo = "התראה אחרונה: —";
 
 async function checkAlerts() {
   try {
@@ -362,27 +354,16 @@ async function checkAlerts() {
     const data = JSON.parse(text.replace(/^\uFEFF/, ''));
 
     const banner = document.getElementById('alert-banner');
-    const lastAlertEl = document.getElementById('last-alert');
     const status = document.getElementById('status');
-
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
 
     if (Array.isArray(data) && data.length > 0) {
       banner.style.display = 'block';
       document.getElementById('banner-text').textContent = `התרעות פעילות – סכנה מיידית (${data.length})`;
       document.getElementById('banner-zones').innerHTML = data.slice(0,10).join(' • ');
-
-      // עדכון ושמירה של ההתראה האחרונה
-      lastAlertInfo = `התראה אחרונה: ${data.slice(0,5).join(', ')} • ${timeStr}`;
-      lastAlertEl.innerHTML = lastAlertInfo;
-
-      // נקודה אדומה מהבהבת
       status.classList.add('alert-active');
       status.innerHTML = `<span class="pulse-dot"></span> מערכת פעילה • התרעה פעילה!`;
     } else {
       banner.style.display = 'none';
-      lastAlertEl.innerHTML = lastAlertInfo; // שומר על ההתראה האחרונה
       status.classList.remove('alert-active');
       status.innerHTML = `<span class="pulse-dot"></span> מערכת פעילה • ממתינה לנתונים...`;
     }
