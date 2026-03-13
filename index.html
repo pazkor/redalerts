@@ -3,154 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>מה הסיכוי להתראה?</title>
+  <title>מרכז פיקוד – סבירות התראה</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin:0; padding:0; }
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
+      font-family: 'VT323', monospace;
+      background: #0a0e14;
+      color: #00ff41;
       direction: rtl;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
     #alert-banner {
       display: none;
-      background: linear-gradient(135deg, #dc2626, #ef4444);
-      color: white;
-      padding: 16px 20px;
-      font-size: clamp(1.2rem, 5vw, 1.7rem);
+      background: #8b0000;
+      color: #ffdddd;
+      padding: 18px 24px;
+      font-size: clamp(1.35rem, 5.5vw, 1.9rem);
       font-weight: bold;
       text-align: center;
-      box-shadow: 0 4px 20px rgba(220,38,38,0.6);
+      text-shadow: 0 0 10px #ff0000;
+      box-shadow: 0 0 30px rgba(255,0,0,0.7);
       position: sticky;
       top: 0;
       z-index: 9999;
-      animation: pulse 2s infinite;
+      animation: flash 1.1s infinite alternate;
+      border-bottom: 4px solid #ff4444;
     }
-    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.92;} }
+    @keyframes flash { from {opacity:0.88;} to {opacity:1;} }
 
-    #map {
-      height: 45vh;
-      min-height: 340px;
-      width: 100%;
-    }
+    #map { flex: 1; min-height: 340px; background: #000; }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 0 16px; }
 
     h1 {
       text-align: center;
-      color: #f87171;
-      margin: 20px 0 16px;
-      font-size: clamp(1.9rem, 7vw, 2.6rem);
-      font-weight: 700;
+      color: #ff4444;
+      margin: 16px 0 12px;
+      font-size: clamp(1.85rem, 6.5vw, 2.8rem);
+      text-shadow: 0 0 15px #ff0000;
+      letter-spacing: 2px;
     }
 
     #prob-box {
-      background: #1f2937;
-      border: 1px solid #4b5563;
-      border-radius: 16px;
-      padding: 24px 16px;
+      background: #0f1419;
+      border: 2px solid #00ff41;
+      border-radius: 8px;
+      padding: 20px 16px;
       text-align: center;
-      margin: 20px 0 32px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      margin: 16px 0 28px;
+      box-shadow: 0 0 25px rgba(0,255,65,0.3);
+      transition: all 0.4s;
+    }
+
+    #prob-box.high {
+      border-color: #ff4444;
+      box-shadow: 0 0 40px rgba(255,68,68,0.7);
     }
 
     #percentage {
-      font-size: clamp(5rem, 18vw, 8rem);
+      font-size: clamp(5.2rem, 17vw, 8.5rem);
       font-weight: 900;
-      margin: 8px 0;
+      margin: 0;
       line-height: 0.85;
-      color: #f3f4f6;
+      color: #00ff41;
+      text-shadow: 0 0 20px #00ff41;
     }
 
     #bar {
-      height: 40px;
-      background: #374151;
-      border-radius: 12px;
+      height: 36px;
+      background: #111;
+      border: 1px solid #444;
+      border-radius: 6px;
       overflow: hidden;
-      margin: 20px 0;
+      margin: 18px 0;
     }
 
     #fill {
       height: 100%;
-      background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
-      transition: width 1s ease-out;
+      background: linear-gradient(90deg, #00ff41, #ffaa00, #ff4444);
+      transition: width 1.2s ease-out;
     }
 
     #zone-name {
-      font-size: clamp(1.8rem, 6vw, 2.4rem);
-      margin-bottom: 16px;
-      color: #e5e7eb;
+      font-size: clamp(1.75rem, 5.5vw, 2.3rem);
+      margin-bottom: 14px;
+      color: #00ff88;
+      text-shadow: 0 0 10px #00ff88;
     }
 
     #explain {
-      font-size: clamp(1rem, 3.8vw, 1.15rem);
-      color: #9ca3af;
+      font-size: clamp(1rem, 3.6vw, 1.2rem);
+      color: #88ffaa;
       line-height: 1.4;
     }
 
     #status {
       text-align: center;
-      font-size: clamp(1.05rem, 4vw, 1.25rem);
-      margin: 20px 0 32px;
+      font-size: clamp(1.05rem, 3.8vw, 1.25rem);
+      margin: 16px 0 28px;
       padding: 12px;
-      border-radius: 12px;
-      background: #1f2937;
+      border-radius: 8px;
+      background: #111;
+      border: 1px solid #333;
+      color: #00cc66;
     }
 
     .stats-section {
       padding: 0 16px 40px;
       background: #0d1117;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
     }
 
     .stat {
-      margin: 20px 0;
       padding: 18px;
-      background: #1a1a1a;
-      border-radius: 12px;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,255,65,0.15);
+      text-align: center;
     }
 
     .stat-label {
       font-size: 1rem;
-      color: #9ca3af;
+      color: #88ffaa;
       margin-bottom: 8px;
     }
 
     .stat-value {
-      font-size: 1.6rem;
+      font-size: 1.95rem;
       font-weight: bold;
       color: #ffcc00;
+      text-shadow: 0 0 10px #ffcc00;
     }
 
     @media (max-width: 768px) {
-      #map { height: 50vh; min-height: 360px; }
-      h1 { margin: 16px 0 12px; }
-      #prob-box { padding: 20px 14px; margin: 16px 0 28px; }
-      .stats-section { padding: 0 12px 48px; }
-      .stat { padding: 16px; margin: 18px 0; }
+      #map { height: 48vh; min-height: 350px; }
+      h1 { margin: 14px 0 10px; }
+      #prob-box { padding: 18px 14px; margin: 14px 0 24px; }
+      .stats-section { grid-template-columns: 1fr; gap: 14px; padding: 0 12px 40px; }
     }
   </style>
 </head>
 <body>
 
-<!-- באנר התרעות -->
 <div id="alert-banner">
-  🚨 <span id="banner-text">התרעות פעילות עכשיו!</span>
-  <div id="banner-zones" style="font-size:0.98rem; margin-top:10px; opacity:0.96;"></div>
+  🚨 <span id="banner-text">התרעות פעילות – סכנה מיידית!</span>
+  <div id="banner-zones" style="font-size:1rem; margin-top:12px;"></div>
 </div>
 
 <div class="container">
-  <h1>מה הסיכוי להתראה?</h1>
+  <h1>מרכז פיקוד – מה הסיכוי להתראה?</h1>
 </div>
 
 <div id="map"></div>
@@ -160,17 +171,16 @@
     <div id="zone-name">לחץ על בועה במפה</div>
     <div id="percentage">— %</div>
     <div id="bar"><div id="fill" style="width:0%"></div></div>
-    <div id="explain">סבירות משוערת להתרעה **היום** (מבוסס על 3 הימים האחרונים)</div>
+    <div id="explain">סבירות משוערת להתרעה **היום** (מבוסס על 4 הימים האחרונים + שחיקה)</div>
   </div>
 
-  <div id="status">טוען מפה...</div>
+  <div id="status">מערכת פעילה • מחכה לנתונים...</div>
 </div>
 
-<!-- סטטיסטיקות -->
 <div class="stats-section">
   <div class="stat">
-    <div class="stat-label">סה"כ התרעות ב-3 הימים האחרונים</div>
-    <div class="stat-value" id="total3">—</div>
+    <div class="stat-label">סה"כ התרעות ב-4 הימים האחרונים</div>
+    <div class="stat-value" id="total4">—</div>
   </div>
   <div class="stat">
     <div class="stat-label">התרעות פעילות כרגע</div>
@@ -178,137 +188,107 @@
   </div>
   <div class="stat">
     <div class="stat-label">האזורים הכי פעילים</div>
-    <div id="top-zones" style="font-size:1rem; line-height:1.6; margin-top:10px;"></div>
+    <div id="top-zones" style="font-size:1.05rem; line-height:1.6; margin-top:10px; color:#ffcc00;"></div>
   </div>
 </div>
 
 <script>
-// רשימת אזורים – עם alerts3 (3 ימים אחרונים)
+// נתונים + שחיקה (3% ליום)
 const cities = [
-  { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts3: 3 },
-  { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts3: 1 },
-  { name: "אזור חיפה", lat: 32.7940, lon: 34.9896, alerts3: 1 },
-  { name: "אזור ראשון לציון", lat: 31.9730, lon: 34.7925, alerts3: 2 },
-  { name: "אזור פתח תקווה", lat: 32.0840, lon: 34.8878, alerts3: 2 },
-  { name: "אזור אשדוד", lat: 31.8044, lon: 34.6553, alerts3: 2 },
-  { name: "אזור נתניה", lat: 32.3215, lon: 34.8532, alerts3: 2 },
-  { name: "אזור באר שבע", lat: 31.2520, lon: 34.7915, alerts3: 1 },
-  { name: "אזור מודיעין", lat: 31.8939, lon: 35.0150, alerts3: 3 },
-  { name: "אזור קריית שמונה", lat: 33.2079, lon: 35.5698, alerts3: 15 },
-  { name: "אזור מטולה", lat: 33.2792, lon: 35.5773, alerts3: 10 },
-  { name: "אזור שדרות", lat: 31.5293, lon: 34.5965, alerts3: 2 },
-  { name: "אזור נהריה", lat: 33.0085, lon: 35.0980, alerts3: 3 },
-  { name: "אזור עכו", lat: 32.9278, lon: 35.0780, alerts3: 2 },
-  { name: "אזור אילת", lat: 29.5577, lon: 34.9519, alerts3: 0 },
-  { name: "אזור ירוחם", lat: 30.9875, lon: 34.9281, alerts3: 0 },
-  { name: "אזור ים המלח", lat: 31.35, lon: 35.45, alerts3: 0 },
-  { name: "אזור הערבה", lat: 30.65, lon: 35.20, alerts3: 0 },
-  { name: "אזור כנרת / טבריה", lat: 32.795, lon: 35.53, alerts3: 5 },
-  { name: "אזור גליל תחתון", lat: 32.92, lon: 35.35, alerts3: 6 },
-  { name: "אזור גליל עליון", lat: 33.00, lon: 35.45, alerts3: 11 },
-  { name: "אזור בית שאן / עמק המעיינות", lat: 32.50, lon: 35.50, alerts3: 4 },
-  { name: "אזור רמת הגולן", lat: 33.10, lon: 35.70, alerts3: 6 },
-  { name: "אזור צפת / מירון", lat: 32.968, lon: 35.492, alerts3: 7 },
-  { name: "אזור קצרין", lat: 32.993, lon: 35.689, alerts3: 5 },
-  { name: "אזור זכרון יעקב / כרמל", lat: 32.57, lon: 34.95, alerts3: 1 },
-  { name: "אזור עפולה / עמק יזרעאל", lat: 32.61, lon: 35.29, alerts3: 2 },
-  { name: "אזור הרצליה", lat: 32.1658, lon: 34.8367, alerts3: 2 },
-  { name: "אזור רעננה", lat: 32.1848, lon: 34.8713, alerts3: 2 },
-  { name: "אזור בת ים", lat: 32.0132, lon: 34.7480, alerts3: 3 },
-  { name: "אזור רמת גן", lat: 32.0684, lon: 34.8248, alerts3: 3 },
-  { name: "אזור חולון", lat: 32.0158, lon: 34.7874, alerts3: 3 },
-  { name: "אזור בני ברק", lat: 32.0849, lon: 34.8352, alerts3: 3 },
-  { name: "אזור חדרה", lat: 32.434, lon: 34.919, alerts3: 2 },
-  { name: "אזור חריש", lat: 32.463, lon: 35.047, alerts3: 1 }
+  { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts4: 3 },
+  { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts4: 1 },
+  { name: "אזור חיפה", lat: 32.7940, lon: 34.9896, alerts4: 1 },
+  { name: "אזור ראשון לציון", lat: 31.9730, lon: 34.7925, alerts4: 2 },
+  { name: "אזור פתח תקווה", lat: 32.0840, lon: 34.8878, alerts4: 2 },
+  { name: "אזור אשדוד", lat: 31.8044, lon: 34.6553, alerts4: 2 },
+  { name: "אזור נתניה", lat: 32.3215, lon: 34.8532, alerts4: 2 },
+  { name: "אזור באר שבע", lat: 31.2520, lon: 34.7915, alerts4: 1 },
+  { name: "אזור מודיעין", lat: 31.8939, lon: 35.0150, alerts4: 3 },
+  { name: "אזור קריית שמונה", lat: 33.2079, lon: 35.5698, alerts4: 15 },
+  { name: "אזור מטולה", lat: 33.2792, lon: 35.5773, alerts4: 10 },
+  { name: "אזור שדרות", lat: 31.5293, lon: 34.5965, alerts4: 2 },
+  { name: "אזור נהריה", lat: 33.0085, lon: 35.0980, alerts4: 3 },
+  { name: "אזור עכו", lat: 32.9278, lon: 35.0780, alerts4: 2 },
+  { name: "אזור אילת", lat: 29.5577, lon: 34.9519, alerts4: 0 },
+  { name: "אזור ירוחם", lat: 30.9875, lon: 34.9281, alerts4: 0 },
+  { name: "אזור ים המלח", lat: 31.35, lon: 35.45, alerts4: 0 },
+  { name: "אזור הערבה", lat: 30.65, lon: 35.20, alerts4: 0 },
+  { name: "אזור כנרת / טבריה", lat: 32.795, lon: 35.53, alerts4: 5 },
+  { name: "אזור גליל תחתון", lat: 32.92, lon: 35.35, alerts4: 6 },
+  { name: "אזור גליל עליון", lat: 33.00, lon: 35.45, alerts4: 11 },
+  { name: "אזור בית שאן", lat: 32.50, lon: 35.50, alerts4: 4 },
+  { name: "אזור רמת הגולן", lat: 33.10, lon: 35.70, alerts4: 6 },
+  { name: "אזור צפת / מירון", lat: 32.968, lon: 35.492, alerts4: 7 },
+  { name: "אזור קצרין", lat: 32.993, lon: 35.689, alerts4: 5 },
+  { name: "אזור זכרון יעקב", lat: 32.57, lon: 34.95, alerts4: 1 },
+  { name: "אזור עפולה", lat: 32.61, lon: 35.29, alerts4: 2 },
+  { name: "אזור הרצליה", lat: 32.1658, lon: 34.8367, alerts4: 2 },
+  { name: "אזור רעננה", lat: 32.1848, lon: 34.8713, alerts4: 2 },
+  { name: "אזור בת ים", lat: 32.0132, lon: 34.7480, alerts4: 3 },
+  { name: "אזור רמת גן", lat: 32.0684, lon: 34.8248, alerts4: 3 },
+  { name: "אזור חולון", lat: 32.0158, lon: 34.7874, alerts4: 3 },
+  { name: "אזור בני ברק", lat: 32.0849, lon: 34.8352, alerts4: 3 },
+  { name: "אזור חדרה", lat: 32.434, lon: 34.919, alerts4: 2 },
+  { name: "אזור חריש", lat: 32.463, lon: 35.047, alerts4: 1 }
 ];
 
-const total3 = cities.reduce((sum, c) => sum + c.alerts3, 0);
-document.getElementById('total12').textContent = total3; // שינוי שם ה-ID ל-total3 אבל נשאר אותו אלמנט
+// שחיקה של 3% ליום (14 יום מאז תחילת ההסלמה)
+const daysSinceStart = 14;
+const decayFactor = Math.pow(0.97, daysSinceStart); // ≈ 0.66
+
+const total4 = cities.reduce((sum, c) => sum + c.alerts4, 0);
+document.getElementById('total4').textContent = total4;
 document.getElementById('top-zones').innerHTML = cities
-  .sort((a,b)=>b.alerts3 - a.alerts3)
+  .sort((a,b)=>b.alerts4 - a.alerts4)
   .slice(0,6)
-  .map(c => `• ${c.name} (${c.alerts3})`).join('<br>');
+  .map(c => `• ${c.name} (${c.alerts4})`).join('<br>');
 
 let selectedMarker = null;
 
-// מפה – מוגבלת לאזור ישראל
-const israelBounds = L.latLngBounds(
-  L.latLng(33.40, 34.1),
-  L.latLng(29.3, 35.9)
-);
-
-const map = L.map('map', {
-  zoomControl: true,
-  minZoom: 7.5,
-  maxZoom: 14,
-  maxBounds: israelBounds,
-  maxBoundsViscosity: 0.95
-}).fitBounds(israelBounds);
+// מפה
+const israelBounds = L.latLngBounds(L.latLng(33.40, 34.1), L.latLng(29.3, 35.9));
+const map = L.map('map', { minZoom: 7.5, maxZoom: 14, maxBounds: israelBounds, maxBoundsViscosity: 0.95 })
+  .fitBounds(israelBounds);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap © CARTO',
-  maxZoom: 19
+  attribution: '© OpenStreetMap © CARTO'
 }).addTo(map);
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות – צבעים אינטואיטיביים
+// בועות + חישוב עם שחיקה
 cities.forEach(city => {
-  const prob = Math.min(99, Math.round((city.alerts3 / 3) * 100));
-  
-  let color = '#10b981';           // ירוק – נמוך
-  if (prob > 75) {
-    color = '#c53030';             // אדום בוהק מאוד
-  } else if (prob > 50) {
-    color = '#f56565';             // אדום-כתום
-  } else if (prob > 20) {
-    color = '#f6ad55';             // כתום-צהוב
-  }
+  let raw = (city.alerts4 / 4) * 100;
+  let prob = Math.min(99, Math.round(raw * decayFactor));
+
+  let color = '#10b981';
+  if (prob > 75) color = '#c53030';
+  else if (prob > 50) color = '#f56565';
+  else if (prob > 20) color = '#f6ad55';
 
   const marker = L.circleMarker([city.lat, city.lon], {
     radius: 11,
     fillColor: color,
     color: '#ffffff',
     weight: 3,
-    opacity: 1,
-    fillOpacity: prob > 75 ? 0.95 : (prob > 50 ? 0.92 : 0.88)
+    fillOpacity: prob > 75 ? 0.95 : 0.88
   }).addTo(map);
 
   marker.city = city;
   marker.bindTooltip(`<b>${city.name}</b><br>סבירות: ${prob}%`, {permanent: false, direction: 'top'});
 
-  marker.on('click', () => selectCity(city, marker));
+  marker.on('click', () => selectCity(city, marker, prob));
 });
 
-function selectCity(city, marker) {
+function selectCity(city, marker, prob) {
   document.getElementById('zone-name').textContent = city.name;
-  const prob = Math.min(99, Math.round((city.alerts3 / 3) * 100));
-  document.getElementById('percentage').textContent = prob + " %";
+  document.getElementById('percentage').textContent = prob + "%";
   document.getElementById('fill').style.width = prob + "%";
 
   const box = document.getElementById('prob-box');
-  if (prob > 75) {
-    box.style.borderColor = '#c53030';
-    box.style.boxShadow = '0 0 25px rgba(197,48,48,0.6)';
-  } else if (prob > 50) {
-    box.style.borderColor = '#f56565';
-    box.style.boxShadow = '0 0 20px rgba(245,101,101,0.4)';
-  } else if (prob > 20) {
-    box.style.borderColor = '#f6ad55';
-    box.style.boxShadow = '0 0 20px rgba(246,173,85,0.4)';
-  } else {
-    box.style.borderColor = '#4b5563';
-    box.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
-  }
-
-  if (selectedMarker) selectedMarker.setStyle({radius: 11, weight: 3});
-  if (marker) {
-    marker.setStyle({radius: 18, weight: 6});
-    selectedMarker = marker;
-  }
+  box.classList.toggle('high', prob > 75);
 }
 
-// התרעות בזמן אמת
 const PROXY = 'https://api.allorigins.win/raw?url=';
 const OREF_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
 
@@ -319,18 +299,12 @@ async function checkAlerts() {
     const data = JSON.parse(text.replace(/^\uFEFF/, ''));
 
     const banner = document.getElementById('alert-banner');
-    const liveCount = document.getElementById('live-count');
-
     if (Array.isArray(data) && data.length > 0) {
       banner.style.display = 'block';
-      document.getElementById('banner-text').textContent = `התרעות פעילות עכשיו (${data.length})`;
+      document.getElementById('banner-text').textContent = `התרעות פעילות – סכנה מיידית (${data.length})`;
       document.getElementById('banner-zones').innerHTML = data.slice(0,10).join(' • ');
-      liveCount.textContent = data.length;
-      liveCount.style.color = '#ef4444';
     } else {
       banner.style.display = 'none';
-      liveCount.textContent = '0';
-      liveCount.style.color = '#10b981';
     }
   } catch(e) {}
 }
