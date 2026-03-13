@@ -39,8 +39,8 @@
     #news-banner {
       background: #1a1a1a;
       color: #ffcc00;
-      padding: 12px 16px;
-      font-size: clamp(1rem, 4vw, 1.15rem);
+      padding: 10px 16px;
+      font-size: clamp(0.95rem, 4vw, 1.1rem);
       text-align: center;
       border-bottom: 1px solid #444;
       overflow: hidden;
@@ -49,7 +49,7 @@
 
     #news-updates {
       display: inline-block;
-      animation: scroll-left 30s linear infinite;
+      animation: scroll-left 18s linear infinite;
     }
 
     @keyframes scroll-left {
@@ -211,9 +211,9 @@
   <div id="banner-zones" style="font-size:1rem; margin-top:10px;"></div>
 </div>
 
-<!-- באנר מבזקים מחמ"ל -->
+<!-- באנר מבזקים מ-ynet -->
 <div id="news-banner">
-  <strong>מבזקים אחרונים מחמ"ל:</strong> 
+  <strong>מבזקים אחרונים מ-ynet:</strong> 
   <span id="news-updates">טוען מבזקים...</span>
 </div>
 
@@ -306,7 +306,7 @@ document.getElementById('top-zones').innerHTML = cities
 
 let selectedMarker = null;
 
-// מפה
+// מפה מוגבלת
 const israelBounds = L.latLngBounds(L.latLng(33.40, 34.1), L.latLng(29.3, 35.9));
 const map = L.map('map', { minZoom: 7.5, maxZoom: 14, maxBounds: israelBounds, maxBoundsViscosity: 0.95 })
   .fitBounds(israelBounds);
@@ -317,7 +317,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 L.control.scale({position: 'bottomleft'}).addTo(map);
 
-// בועות
+// בועות עם רצפה 9% לאילת והערבה
 cities.forEach(city => {
   let raw = (city.alerts4 / 4) * 100;
   if (city.name.includes("אילת") || city.name.includes("ערבה")) {
@@ -354,7 +354,7 @@ function selectCity(city, marker, prob) {
   box.classList.toggle('high', prob > 75);
 }
 
-// שעון + תאריך
+// שעון + תאריך (ללא שנה עברית)
 function updateClock() {
   const now = new Date();
   const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -396,28 +396,29 @@ async function checkAlerts() {
   }
 }
 
-// מבזקים מחמ"ל
-async function loadHamalUpdates() {
+// מבזקים מ-ynet RSS
+async function loadYnetRss() {
   try {
-    const res = await fetch(PROXY + encodeURIComponent('https://hamal.co.il/main'));
+    const res = await fetch(PROXY + encodeURIComponent('https://www.ynet.co.il/Integration/StoryRss2.xml'));
     const text = await res.text();
-
-    // חיפוש פשוט אחר מבזקים (מתאים למבנה הנוכחי של חמ"ל)
-    const matches = text.match(/(\d{2}:\d{2})[^<]*?<span[^>]*>(.*?)<\/span>/g) || [];
-    const latest = matches.slice(0,3).map(m => {
-      const time = m.match(/(\d{2}:\d{2})/)?.[1] || '';
-      const text = m.match(/<span[^>]*>(.*?)<\/span>/)?.[1] || '';
-      return `${time} - ${text.replace(/<[^>]+>/g, '')}`;
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, "text/xml");
+    const items = xml.querySelectorAll('item');
+    const latest = Array.from(items).slice(0,4).map(item => {
+      const title = item.querySelector('title')?.textContent || '';
+      const pubDate = item.querySelector('pubDate')?.textContent || '';
+      const time = new Date(pubDate).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) || '';
+      return `${time} - ${title}`;
     }).join(' • ');
 
     document.getElementById('news-updates').innerHTML = latest || 'אין מבזקים חדשים כרגע';
   } catch(e) {
-    document.getElementById('news-updates').innerHTML = 'לא ניתן לטעון מבזקים מחמ"ל';
+    document.getElementById('news-updates').innerHTML = 'לא ניתן לטעון מבזקים מ-ynet';
   }
 }
 
-loadHamalUpdates();
-setInterval(loadHamalUpdates, 30000); // כל 30 שניות
+loadYnetRss();
+setInterval(loadYnetRss, 30000); // כל 30 שניות
 
 checkAlerts();
 setInterval(checkAlerts, 5000);
