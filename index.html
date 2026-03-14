@@ -223,6 +223,7 @@
       display: flex;
       align-items: baseline;
       gap: 4px;
+      direction: ltr; /* always: number then % left-to-right */
     }
     #percentage {
       font-family: var(--font-hud);
@@ -240,6 +241,8 @@
       font-family: var(--font-hud);
       font-size: clamp(1.5rem, 5vw, 2.5rem);
       color: var(--text-dim);
+      align-self: flex-start;
+      margin-top: 0.5rem;
     }
     #bar-wrap {
       width: 100%;
@@ -417,6 +420,7 @@
       <div id="percentage">—</div>
       <div id="pct-symbol">%</div>
     </div>
+    <!-- direction:ltr ensures: [NUMBER][%] order always correct -->
     <div id="bar-wrap"><div id="bar-fill"></div></div>
     <div id="prob-caption">סבירות משוערת להתרעה היום · מבוסס על 4 ימים אחרונים</div>
   </div>
@@ -682,47 +686,74 @@ function updateStats() {
 // ═══════════════════════════════════════════════
 async function fetchAlerts() {
   setLoading(true);
-  try {
-    const controller = new AbortController();
-    const timeout    = setTimeout(() => controller.abort(), 5000);
-    const url        = CONFIG.PROXY_URL + encodeURIComponent(CONFIG.OREF_URL);
-    const res        = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
+  let success = false;
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  // ניסיון עם שני proxies שונים
+  const proxies = [
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  ];
 
-    let text = await res.text();
-    text = text.replace(/^\uFEFF/, '').trim();
+  for (let i = 0; i < proxies.length && !success; i++) {
+    try {
+      const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 6000);
+      const fetchUrl   = proxies[i](CONFIG.OREF_URL);
+      const res        = await fetch(fetchUrl, { signal: controller.signal, cache: 'no-store' });
+      clearTimeout(timeout);
 
-    // oref מחזיר מחרוזת ריקה כשאין התרעות
-    const data = (text && text !== '{}' && text !== '[]')
-      ? JSON.parse(text)
-      : [];
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    state.retryCount = 0;
-    state.apiError   = false;
-    state.lastFetch  = new Date();
-    showApiError(false);
+      let text = await res.text();
+      text = text.replace(/^\uFEFF/, '').trim();
 
-    const alerts = Array.isArray(data) ? data
-      : (data.data && Array.isArray(data.data)) ? data.data
-      : [];
+      // allorigins עטף לפעמים ב-JSON עם שדה "contents"
+      let parsed;
+      try {
+        const outer = JSON.parse(text);
+        if (outer && outer.contents !== undefined) {
+          // allorigins wrapper
+          const inner = outer.contents ? outer.contents.trim() : '';
+          parsed = (inner && inner !== '{}' && inner !== '[]' && inner.startsWith('['))
+            ? JSON.parse(inner) : [];
+        } else if (Array.isArray(outer)) {
+          parsed = outer;
+        } else if (outer && Array.isArray(outer.data)) {
+          parsed = outer.data;
+        } else {
+          parsed = [];
+        }
+      } catch(_) {
+        // text עצמו הוא מערך JSON או ריק
+        parsed = (text && text.startsWith('[')) ? JSON.parse(text) : [];
+      }
 
-    handleAlerts(alerts);
+      state.retryCount = 0;
+      state.apiError   = false;
+      state.lastFetch  = new Date();
+      showApiError(false);
+      success = true;
+      handleAlerts(Array.isArray(parsed) ? parsed : []);
 
-  } catch(err) {
+    } catch(err) {
+      // נסה את ה-proxy הבא
+    }
+  }
+
+  if (!success) {
     state.retryCount++;
     if (state.retryCount <= CONFIG.MAX_RETRIES) {
-      // נסה שוב בעוד 3 שניות
-      setTimeout(fetchAlerts, 3000);
+      setTimeout(fetchAlerts, 4000);
     } else {
       state.apiError = true;
       showApiError(true);
       state.retryCount = 0;
+      // הצג נתונים קיימים בלי לנעול את ה-UI
+      handleAlerts([]);
     }
-  } finally {
-    setLoading(false);
   }
+
+  setLoading(false);
 }
 
 function handleAlerts(alerts) {
