@@ -190,7 +190,7 @@
   <div id="banner-zones" style="font-size:1rem; margin-top:10px;"></div>
 </div>
 
-<!-- שעון + יום למלחמה -->
+<!-- שעון + תאריך -->
 <div id="clock-bar">
   <span id="clock"></span>
 </div>
@@ -206,7 +206,7 @@
     <div id="zone-name">לחץ על אזור במפה</div>
     <div id="percentage">— %</div>
     <div id="bar"><div id="fill" style="width:0%"></div></div>
-    <div id="explain">סבירות משוערת להתרעה **היום** (מבוסס על 4 הימים האחרונים )</div>
+    <div id="explain">סבירות משוערת להתרעה **היום** (מבוסס על 4 הימים האחרונים + מודל שחיקה)</div>
   </div>
 
   <div id="status">
@@ -218,7 +218,7 @@
 <div class="stats-section">
   <div class="stat">
     <div class="stat-label">סה"כ התרעות ב-4 הימים האחרונים</div>
-    <div class="stat-value" id="total4">—</div>
+    <div class="stat-value" id="total4">0</div>
   </div>
   <div class="stat">
     <div class="stat-label">התרעות פעילות כרגע</div>
@@ -226,13 +226,13 @@
   </div>
   <div class="stat">
     <div class="stat-label">האזורים הכי פעילים</div>
-    <div id="top-zones" style="font-size:1.05rem; line-height:1.6; margin-top:10px; color:#ffcc00;"></div>
+    <div id="top-zones" style="font-size:1.05rem; line-height:1.6; margin-top:10px; color:#ffcc00;">—</div>
   </div>
 </div>
 
 <script>
-// ====================== נתוני בסיס ======================
-const citiesBase = [
+// רשימת אזורים (כולל כל ההוספות הקודמות)
+const cities = [
   { name: "אזור תל אביב", lat: 32.0853, lon: 34.7818, alerts4: 3 },
   { name: "אזור ירושלים", lat: 31.7683, lon: 35.2137, alerts4: 1 },
   { name: "אזור חיפה", lat: 32.7940, lon: 34.9896, alerts4: 1 },
@@ -274,96 +274,78 @@ const citiesBase = [
   { name: "אזור טמרה", lat: 32.853, lon: 35.199, alerts4: 3 }
 ];
 
-// ====================== שחיקה + תנודות + תגובה לאזעקה ======================
-const warStart = new Date(2026, 1, 28); // 28/2/2026
-let cityStates = {}; // localStorage + מצב זמני
+const total4 = cities.reduce((sum, c) => sum + c.alerts4, 0);
+document.getElementById('total4').textContent = total4 || 0;
+document.getElementById('top-zones').innerHTML = cities
+  .filter(c => c.alerts4 > 0)
+  .sort((a,b)=>b.alerts4 - a.alerts4)
+  .slice(0,6)
+  .map(c => `• ${c.name} (${c.alerts4})`).join('<br>') || 'אין נתונים פעילים כרגע';
 
-// טען/אתחל מצב
-citiesBase.forEach(city => {
-  const key = city.name;
-  if (!localStorage.getItem(key)) {
-    cityStates[key] = {
-      baseAlerts: city.alerts4,
-      lastAlertTime: null,
-      postAlertUntil: 0,
-      noise: 0
-    };
-  } else {
-    cityStates[key] = JSON.parse(localStorage.getItem(key));
+let selectedMarker = null;
+
+// מפה מוגבלת
+const israelBounds = L.latLngBounds(L.latLng(33.40, 34.1), L.latLng(29.3, 35.9));
+const map = L.map('map', { minZoom: 7.5, maxZoom: 14, maxBounds: israelBounds, maxBoundsViscosity: 0.95 })
+  .fitBounds(israelBounds);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+L.control.scale({position: 'bottomleft'}).addTo(map);
+
+// בועות
+cities.forEach(city => {
+  let raw = (city.alerts4 / 4) * 100;
+  if (city.name.includes("אילת") || city.name.includes("ערבה")) {
+    raw = Math.max(raw, 9);
   }
-});
+  const prob = Math.min(99, Math.round(raw));
 
-function saveStates() {
-  Object.keys(cityStates).forEach(key => {
-    localStorage.setItem(key, JSON.stringify(cityStates[key]));
-  });
-}
+  let color = '#10b981';
+  if (prob > 75) color = '#c53030';
+  else if (prob > 50) color = '#f56565';
+  else if (prob > 20) color = '#f6ad55';
 
-// חישוב סבירות דינמי (שחיקה + תגובה לאזעקה + תנודה)
-function getProb(cityName) {
-  const state = cityStates[cityName];
-  const now = Date.now();
-
-  // שחיקה יומית 3%
-  const daysSinceWar = Math.floor((now - warStart) / (1000*60*60*24));
-  const decay = Math.pow(0.97, daysSinceWar);
-
-  // תגובה לאזעקה (ירידה 30% למשך שעה)
-  let postAlertFactor = 1;
-  if (state.postAlertUntil > now) {
-    postAlertFactor = 0.7;
-  }
-
-  // תנודה קלה (+/- 7%)
-  const hourFactor = (new Date().getHours() >= 22 || new Date().getHours() <= 6) ? 0.85 : 1; // לילה נמוך יותר
-  const noise = state.noise || (Math.random() * 14 - 7);
-
-  let raw = (state.baseAlerts / 4) * 100;
-  if (cityName.includes("אילת") || cityName.includes("ערבה")) raw = Math.max(raw, 9);
-
-  let prob = raw * decay * postAlertFactor * hourFactor + noise;
-  prob = Math.max(1, Math.min(99, Math.round(prob)));
-
-  return prob;
-}
-
-// עדכון בועות
-let markers = {};
-const map = L.map('map', { minZoom: 7.5, maxZoom: 14, maxBounds: L.latLngBounds(L.latLng(33.40, 34.1), L.latLng(29.3, 35.9)), maxBoundsViscosity: 0.95 })
-  .fitBounds(L.latLngBounds(L.latLng(33.40, 34.1), L.latLng(29.3, 35.9)));
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-
-citiesBase.forEach(city => {
-  const marker = L.circleMarker([city.lat, city.lon], { radius: 11, color: '#ffffff', weight: 3 }).addTo(map);
-  markers[city.name] = marker;
+  const marker = L.circleMarker([city.lat, city.lon], {
+    radius: 11,
+    fillColor: color,
+    color: '#ffffff',
+    weight: 3,
+    opacity: 1,
+    fillOpacity: prob > 75 ? 0.95 : 0.88
+  }).addTo(map);
 
   marker.city = city;
-  marker.on('click', () => {
-    const prob = getProb(city.name);
-    document.getElementById('zone-name').textContent = city.name;
-    document.getElementById('percentage').textContent = prob + "%";
-    document.getElementById('fill').style.width = prob + "%";
-    document.getElementById('prob-box').classList.toggle('high', prob > 75);
-  });
+  marker.bindTooltip(`<b>${city.name}</b><br>סבירות: ${prob}%`, {permanent: false, direction: 'top'});
+
+  marker.on('click', () => selectCity(city, marker, prob));
 });
 
-// עדכון בועות כל 30 שניות (fluctuations)
-function updateAllMarkers() {
-  citiesBase.forEach(city => {
-    const prob = getProb(city.name);
-    let color = '#10b981';
-    if (prob > 75) color = '#c53030';
-    else if (prob > 50) color = '#f56565';
-    else if (prob > 20) color = '#f6ad55';
+function selectCity(city, marker, prob) {
+  document.getElementById('zone-name').textContent = city.name;
+  document.getElementById('percentage').textContent = prob + "%";
+  document.getElementById('fill').style.width = prob + "%";
 
-    const marker = markers[city.name];
-    marker.setStyle({ fillColor: color, fillOpacity: prob > 75 ? 0.95 : 0.88 });
-    marker.bindTooltip(`<b>${city.name}</b><br>סבירות: ${prob}%`, {permanent: false, direction: 'top'});
-  });
+  const box = document.getElementById('prob-box');
+  box.classList.toggle('high', prob > 75);
 }
 
-// ====================== התרעות + תגובה מיידית ======================
+// שעון + תאריך
+function updateClock() {
+  const now = new Date();
+  const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  const options = { weekday: 'long', day: 'numeric', month: 'long' };
+  const dateStr = now.toLocaleDateString('he-IL', options);
+  const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
+  document.getElementById('clock').innerHTML = `${dateStr} • ${timeStr}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// התרעות בזמן אמת
 const PROXY = 'https://api.allorigins.win/raw?url=';
 const OREF_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
 
@@ -375,23 +357,11 @@ async function checkAlerts() {
 
     const banner = document.getElementById('alert-banner');
     const status = document.getElementById('status');
-    const now = Date.now();
 
     if (Array.isArray(data) && data.length > 0) {
       banner.style.display = 'block';
       document.getElementById('banner-text').textContent = `התרעות פעילות – סכנה מיידית (${data.length})`;
       document.getElementById('banner-zones').innerHTML = data.slice(0,10).join(' • ');
-
-      // תגובה מיידית: ירידה של ~30% בכל אזור שהופיע באזעקה
-      data.forEach(zone => {
-        citiesBase.forEach(city => {
-          if (zone.includes(city.name.replace("אזור ", ""))) {
-            cityStates[city.name].postAlertUntil = now + 60*60*1000; // שעה
-            cityStates[city.name].noise = -25; // ירידה חדה
-          }
-        });
-      });
-
       status.classList.add('alert-active');
       status.innerHTML = `<span class="pulse-dot"></span> מערכת פעילה • התרעה פעילה!`;
     } else {
@@ -399,42 +369,18 @@ async function checkAlerts() {
       status.classList.remove('alert-active');
       status.innerHTML = `<span class="pulse-dot"></span> מערכת פעילה • ממתינה לנתונים...`;
     }
-
-    saveStates();
-    updateAllMarkers();
-  } catch(e) {}
+  } catch(e) {
+    console.log('שגיאה בבדיקת התרעות:', e);
+  }
 }
 
-// תנודה קלה + עדכון כל 30 שניות
-setInterval(() => {
-  citiesBase.forEach(city => {
-    cityStates[city.name].noise = (Math.random() * 14 - 7);
-  });
-  updateAllMarkers();
-}, 30000);
-
-// התרעות + רענון
 checkAlerts();
 setInterval(checkAlerts, 5000);
 
-// שעון + יום למלחמה
-function updateClock() {
-  const now = new Date();
-  const gregorian = now.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
-  const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
-
-  const daysSinceWar = Math.floor((now - warStart) / (1000*60*60*24)) + 1;
-
-  document.getElementById('clock').innerHTML = `${gregorian} • ${timeStr} • יום ${daysSinceWar} למלחמה`;
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// רענון מלא כל 3 דקות (גיבוי)
-setTimeout(() => location.reload(), 180000);
-
-// התחלה
-updateAllMarkers();
+// רענון אוטומטי כל 3 דקות
+setTimeout(() => {
+  location.reload();
+}, 180000);
 </script>
 </body>
 </html>
