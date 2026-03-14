@@ -25,6 +25,7 @@
       --shadow-green: rgba(0,255,65,0.18);
       --shadow-red: rgba(255,68,68,0.22);
       --accent: #00ff88;
+      --info: #60a5fa;
     }
 
     body.theme-red {
@@ -42,6 +43,7 @@
       --shadow-green: rgba(255,80,80,0.08);
       --shadow-red: rgba(255,68,68,0.28);
       --accent: #ff7777;
+      --info: #fca5a5;
     }
 
     body.theme-blue {
@@ -59,6 +61,7 @@
       --shadow-green: rgba(125,211,252,0.10);
       --shadow-red: rgba(251,113,133,0.18);
       --accent: #38bdf8;
+      --info: #93c5fd;
     }
 
     body.theme-hud {
@@ -76,13 +79,10 @@
       --shadow-green: rgba(82,255,168,0.16);
       --shadow-red: rgba(255,90,90,0.20);
       --accent: #7dffbf;
+      --info: #9fffcf;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       min-height: 100%;
@@ -139,15 +139,23 @@
     }
 
     .container {
-      max-width: 1440px;
+      max-width: 1460px;
       margin: 0 auto;
       width: 100%;
       padding: 0 14px;
     }
 
+    h1 {
+      text-align: center;
+      color: var(--danger);
+      margin: 10px 0 12px;
+      font-size: clamp(1.8rem, 6vw, 2.7rem);
+      text-shadow: 0 0 12px rgba(255,0,0,0.45);
+    }
+
     .top-toolbar {
       display: grid;
-      grid-template-columns: 1fr auto auto auto;
+      grid-template-columns: 1fr auto auto auto auto;
       gap: 10px;
       align-items: center;
       padding: 12px 0;
@@ -205,17 +213,9 @@
       box-shadow: 0 0 18px var(--shadow-red);
     }
 
-    h1 {
-      text-align: center;
-      color: var(--danger);
-      margin: 10px 0 12px;
-      font-size: clamp(1.8rem, 6vw, 2.7rem);
-      text-shadow: 0 0 12px rgba(255,0,0,0.45);
-    }
-
     .main-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.9fr);
+      grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.95fr);
       gap: 16px;
       margin-bottom: 18px;
     }
@@ -230,7 +230,7 @@
 
     #map {
       width: 100%;
-      min-height: 560px;
+      min-height: 580px;
       background: #000;
     }
 
@@ -324,6 +324,8 @@
     .mini-value {
       font-size: 1.35rem;
       color: var(--warning);
+      line-height: 1.3;
+      min-height: 1.3em;
     }
 
     #status {
@@ -363,9 +365,13 @@
       box-shadow: 0 0 20px var(--shadow-red);
     }
 
-    #status.error .pulse-dot {
-      background: var(--danger);
-      box-shadow: 0 0 12px var(--danger), 0 0 20px var(--danger);
+    #status.info {
+      color: var(--info);
+    }
+
+    #status.info .pulse-dot {
+      background: var(--info);
+      box-shadow: 0 0 12px var(--info), 0 0 24px var(--info);
     }
 
     @keyframes pulse-dot {
@@ -380,7 +386,7 @@
 
     .stats-section {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
       gap: 14px;
       margin-bottom: 24px;
     }
@@ -408,15 +414,22 @@
       line-height: 1.3;
     }
 
-    .history-list, .zones-list {
+    .feed-list, .zones-list, .history-list, .debug-box {
       text-align: right;
       font-size: 1.05rem;
       line-height: 1.7;
       margin-top: 8px;
       color: var(--warning);
-      max-height: 200px;
+      max-height: 220px;
       overflow: auto;
       padding-left: 4px;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .debug-box {
+      color: var(--info);
+      font-size: 0.95rem;
     }
 
     .leaflet-tooltip {
@@ -466,11 +479,10 @@
       opacity: 0.95;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1100px) {
       .main-grid {
         grid-template-columns: 1fr;
       }
-
       #map {
         min-height: 460px;
       }
@@ -480,19 +492,15 @@
       .top-toolbar {
         grid-template-columns: 1fr 1fr;
       }
-
       .search-wrap {
         grid-column: 1 / -1;
       }
-
       #map {
         min-height: 50vh;
       }
-
       .detail-grid {
         grid-template-columns: 1fr 1fr;
       }
-
       .legend {
         font-size: 0.85rem;
       }
@@ -518,6 +526,7 @@
       </div>
 
       <button class="btn" id="locate-btn">האזור שלי</button>
+      <button class="btn" id="refresh-btn">רענן</button>
       <button class="btn" id="theme-toggle">ערכת תצוגה</button>
       <button class="btn" id="sound-toggle">🔊 צליל פעיל</button>
     </div>
@@ -540,7 +549,7 @@
           <div id="risk-label">מדד סיכון יחסי</div>
           <div id="percentage">—%</div>
           <div id="bar"><div id="fill"></div></div>
-          <div id="explain">הערכת פעילות יחסית לפי נתוני בסיס, התרעות חיות, דעיכה בזמן, וקירבה לאזורים פעילים.</div>
+          <div id="explain">הערכת פעילות יחסית לפי נתוני בסיס, התרעות חיות, קירבה גיאוגרפית, ודעיכה בזמן.</div>
 
           <div class="detail-grid">
             <div class="mini-card">
@@ -548,7 +557,7 @@
               <div class="mini-value" id="detail-base">—</div>
             </div>
             <div class="mini-card">
-              <div class="mini-label">התרעה אחרונה</div>
+              <div class="mini-label">התרעה אחרונה באזור</div>
               <div class="mini-value" id="detail-last-alert">—</div>
             </div>
             <div class="mini-card">
@@ -591,33 +600,48 @@
       </div>
 
       <div class="stat">
+        <div class="stat-label">פיד אירועים אחרונים</div>
+        <div class="feed-list" id="events-feed">אין אירועים עדיין</div>
+      </div>
+
+      <div class="stat">
         <div class="stat-label">היסטוריית התרעות מקומית</div>
-        <div class="history-list" id="history-list">—</div>
+        <div class="history-list" id="history-list">אין היסטוריה עדיין</div>
       </div>
 
       <div class="stat">
         <div class="stat-label">אזור נבחר</div>
         <div class="stat-value" id="selected-summary">—</div>
       </div>
+
+      <div class="stat">
+        <div class="stat-label">Debug / Pipeline</div>
+        <div class="debug-box" id="debug-box">ממתין...</div>
+      </div>
     </div>
 
     <div class="footer-note">
-      מדד זה הוא המחשה חזותית ואינו תחליף למערכות התרעה רשמיות.  
-      ההתרעות החיות נבדקות בנפרד ומוצגות בבאנר העליון.
+      זהו דשבורד המחשה. ההתרעות החיות מוצגות בנפרד, והמדד הוא מדד יחסי בלבד ולא תחזית רשמית.
     </div>
   </div>
 
   <script>
-    // =========================
-    // הגדרות בסיס
-    // =========================
-    const PROXY = 'https://api.allorigins.win/raw?url=';
-    const ALERTS_URL = 'https://www.oref.org.il/WarningMessages/alert/alerts.json';
-
     const THEMES = ['theme-default', 'theme-red', 'theme-blue', 'theme-hud'];
 
+    const ALERT_SOURCE_CANDIDATES = [
+      {
+        name: 'allorigins-raw',
+        buildUrl: () => 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.oref.org.il/WarningMessages/alert/alerts.json')
+      },
+      {
+        name: 'allorigins-get',
+        buildUrl: () => 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.oref.org.il/WarningMessages/alert/alerts.json'),
+        unwrapJsonField: true
+      }
+    ];
+
     const appState = {
-      warStart: new Date(2026, 1, 28), // 28 בפברואר 2026
+      warStart: new Date(2026, 1, 28),
       cityStates: {},
       activeAlerts: [],
       selectedCity: null,
@@ -626,7 +650,11 @@
       lastAlertSignature: localStorage.getItem('lastAlertSignature') || '',
       currentThemeIndex: parseInt(localStorage.getItem('themeIndex') || '0', 10),
       alertHistory: JSON.parse(localStorage.getItem('alertHistory') || '[]'),
-      userLocation: JSON.parse(localStorage.getItem('userLocation') || 'null')
+      eventsFeed: JSON.parse(localStorage.getItem('eventsFeed') || '[]'),
+      userLocation: JSON.parse(localStorage.getItem('userLocation') || 'null'),
+      debugLog: JSON.parse(localStorage.getItem('debugLog') || '[]'),
+      lastSourceUsed: localStorage.getItem('lastSourceUsed') || 'none',
+      demoMode: false
     };
 
     const cities = [
@@ -671,47 +699,41 @@
       { name: "אזור טמרה", aliases: ["טמרה"], lat: 32.853, lon: 35.199, alerts4: 3 }
     ];
 
-    // =========================
-    // עזרי אחסון
-    // =========================
-    function saveCityStates() {
-      Object.keys(appState.cityStates).forEach(key => {
-        localStorage.setItem(`cityState:${key}`, JSON.stringify(appState.cityStates[key]));
-      });
+    function saveJSON(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
     }
 
-    function initCityStates() {
-      cities.forEach(city => {
-        const saved = localStorage.getItem(`cityState:${city.name}`);
-        appState.cityStates[city.name] = saved
-          ? JSON.parse(saved)
-          : {
-              base: city.alerts4,
-              postAlertUntil: 0,
-              noise: 0,
-              lastAlertAt: null,
-              hitCount: 0
-            };
-      });
+    function normalizeText(str) {
+      return (str || '')
+        .replace(/["'׳״]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
-    function saveAlertHistory() {
-      localStorage.setItem('alertHistory', JSON.stringify(appState.alertHistory.slice(-120)));
+    function addDebug(msg) {
+      const line = `${new Date().toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit', second:'2-digit'})} • ${msg}`;
+      appState.debugLog.push(line);
+      appState.debugLog = appState.debugLog.slice(-12);
+      saveJSON('debugLog', appState.debugLog);
+      renderDebug();
+      console.log('[DEBUG]', msg);
     }
 
-    function saveUserLocation(lat, lon) {
-      appState.userLocation = { lat, lon };
-      localStorage.setItem('userLocation', JSON.stringify(appState.userLocation));
+    function renderDebug() {
+      document.getElementById('debug-box').innerHTML = appState.debugLog.length
+        ? appState.debugLog.slice().reverse().join('<br>')
+        : 'אין מידע';
     }
 
-    // =========================
-    // עזרי תצוגה
-    // =========================
-    function setStatus(text, { alert = false, error = false } = {}) {
+    function setStatus(text, mode = 'ok') {
       const status = document.getElementById('status');
       const statusText = document.getElementById('status-text');
-      status.classList.toggle('alert-active', alert);
-      status.classList.toggle('error', error);
+      status.classList.remove('alert-active', 'error', 'info');
+
+      if (mode === 'alert') status.classList.add('alert-active');
+      if (mode === 'error') status.classList.add('error');
+      if (mode === 'info') status.classList.add('info');
+
       statusText.textContent = text;
     }
 
@@ -745,13 +767,9 @@
         appState.lastFetchTime ? formatDateTime(appState.lastFetchTime) : '—';
     }
 
-    // =========================
-    // גאוגרפיה
-    // =========================
     function haversineKm(lat1, lon1, lat2, lon2) {
       const R = 6371;
       const toRad = deg => deg * Math.PI / 180;
-
       const dLat = toRad(lat2 - lat1);
       const dLon = toRad(lon2 - lon1);
       const a =
@@ -759,14 +777,12 @@
         Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
         Math.sin(dLon / 2) ** 2;
 
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
+      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
     }
 
     function findNearestCity(lat, lon) {
       let best = null;
       let bestDist = Infinity;
-
       for (const city of cities) {
         const d = haversineKm(lat, lon, city.lat, city.lon);
         if (d < bestDist) {
@@ -777,20 +793,9 @@
       return { city: best, distanceKm: bestDist };
     }
 
-    // =========================
-    // מנוע התאמת אזורים
-    // =========================
-    function normalizeText(str) {
-      return (str || '')
-        .replace(/["'׳״]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
     function zoneMatchesCity(zone, city) {
       const z = normalizeText(zone);
       const cleanMain = normalizeText(city.name.replace(/^אזור\s*/, ''));
-
       if (z.includes(cleanMain)) return true;
       if (city.aliases?.some(alias => z.includes(normalizeText(alias)))) return true;
       return false;
@@ -800,9 +805,27 @@
       return cities.filter(city => zoneMatchesCity(zone, city));
     }
 
-    // =========================
-    // מודל סיכון יחסי
-    // =========================
+    function initCityStates() {
+      cities.forEach(city => {
+        const saved = localStorage.getItem(`cityState:${city.name}`);
+        appState.cityStates[city.name] = saved
+          ? JSON.parse(saved)
+          : {
+              base: city.alerts4,
+              postAlertUntil: 0,
+              noise: 0,
+              lastAlertAt: null,
+              hitCount: 0
+            };
+      });
+    }
+
+    function saveCityStates() {
+      Object.keys(appState.cityStates).forEach(key => {
+        localStorage.setItem(`cityState:${key}`, JSON.stringify(appState.cityStates[key]));
+      });
+    }
+
     function getNearbyLiveBoost(city) {
       if (!appState.activeAlerts.length) return 0;
 
@@ -812,18 +835,18 @@
         const matched = getCitiesMatchingZone(zone);
 
         if (matched.some(c => c.name === city.name)) {
-          boost += 28;
+          boost += 35;
         } else {
           for (const nearby of matched) {
             const dist = haversineKm(city.lat, city.lon, nearby.lat, nearby.lon);
-            if (dist < 25) boost += 16;
-            else if (dist < 60) boost += 9;
-            else if (dist < 110) boost += 4;
+            if (dist < 25) boost += 18;
+            else if (dist < 60) boost += 10;
+            else if (dist < 110) boost += 5;
           }
         }
       }
 
-      return Math.min(boost, 35);
+      return Math.min(boost, 40);
     }
 
     function getRiskScore(city) {
@@ -831,23 +854,39 @@
       const now = Date.now();
       const days = Math.floor((now - appState.warStart) / 86400000);
 
-      const historical = Math.min(60, city.alerts4 * 6);
-      const longDecay = Math.max(0.56, Math.pow(0.985, days));
-      const postAlertFactor = state.postAlertUntil > now ? 0.72 : 1;
+      const historical = Math.min(75, city.alerts4 * 10);
+      const longDecay = Math.max(0.65, Math.pow(0.992, days));
+      const postAlertFactor = state.postAlertUntil > now ? 0.82 : 1;
 
       const hour = new Date().getHours();
-      const nightFactor = (hour >= 0 && hour <= 6) ? 0.9 : 1;
+      const nightFactor = (hour >= 0 && hour <= 6) ? 0.95 : 1;
 
       const liveBoost = getNearbyLiveBoost(city);
       const localNoise = state.noise || 0;
 
-      let southernGuard = 0;
-      if (city.name.includes("אילת") || city.name.includes("הערבה")) southernGuard = 6;
+      let regionalBase = 10;
 
-      let score = (historical * longDecay * postAlertFactor * nightFactor) + liveBoost + southernGuard + localNoise;
+      if (city.name.includes("קריית שמונה") || city.name.includes("קריית") || city.name.includes("קרית") || city.name.includes("מטולה") || city.name.includes("גליל עליון")) {
+        regionalBase += 12;
+      }
 
-      score = Math.max(1, Math.min(99, Math.round(score)));
-      return score;
+      if (city.name.includes("רמת הגולן") || city.name.includes("קצרין") || city.name.includes("צפת")) {
+        regionalBase += 7;
+      }
+
+      if (city.name.includes("אילת") || city.name.includes("הערבה")) {
+        regionalBase += 4;
+      }
+
+      let score =
+        regionalBase +
+        (historical * longDecay * postAlertFactor * nightFactor) +
+        liveBoost +
+        localNoise;
+
+      score = Math.round(score * 1.12);
+
+      return Math.max(5, Math.min(99, score));
     }
 
     function randomizeNoise() {
@@ -856,9 +895,6 @@
       });
     }
 
-    // =========================
-    // סאונד
-    // =========================
     function updateSoundButton() {
       const btn = document.getElementById('sound-toggle');
       btn.textContent = appState.soundEnabled ? '🔊 צליל פעיל' : '🔇 צליל כבוי';
@@ -876,21 +912,295 @@
         oscillator.type = 'square';
         oscillator.frequency.setValueAtTime(880, ctx.currentTime);
         gain.gain.setValueAtTime(0.001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.23);
 
         oscillator.connect(gain);
         gain.connect(ctx.destination);
         oscillator.start();
-        oscillator.stop(ctx.currentTime + 0.25);
+        oscillator.stop(ctx.currentTime + 0.23);
       } catch (e) {
-        console.warn('Audio unavailable', e);
+        addDebug('Audio unavailable');
       }
     }
 
-    // =========================
-    // מפה
-    // =========================
+    function addFeedEvent(text, kind = 'info') {
+      appState.eventsFeed.push({
+        time: new Date().toISOString(),
+        text,
+        kind
+      });
+      appState.eventsFeed = appState.eventsFeed.slice(-40);
+      saveJSON('eventsFeed', appState.eventsFeed);
+      renderEventsFeed();
+    }
+
+    function renderEventsFeed() {
+      const el = document.getElementById('events-feed');
+      if (!appState.eventsFeed.length) {
+        el.innerHTML = 'אין אירועים עדיין';
+        return;
+      }
+
+      el.innerHTML = appState.eventsFeed.slice().reverse().slice(0, 10).map(item => {
+        return `• ${formatDateTime(item.time)} — ${item.text}`;
+      }).join('<br>');
+    }
+
+    function saveAlertHistory() {
+      appState.alertHistory = appState.alertHistory.slice(-120);
+      saveJSON('alertHistory', appState.alertHistory);
+    }
+
+    function renderHistoryList() {
+      const target = document.getElementById('history-list');
+      if (!appState.alertHistory.length) {
+        target.innerHTML = 'אין היסטוריה עדיין';
+        return;
+      }
+
+      target.innerHTML = appState.alertHistory.slice().reverse().slice(0, 10).map(entry => {
+        const zones = entry.alerts.slice(0, 3).join(' • ');
+        const extra = entry.alerts.length > 3 ? ` ועוד ${entry.alerts.length - 3}` : '';
+        return `• ${formatDateTime(entry.time)} — ${zones}${extra}`;
+      }).join('<br>');
+    }
+
+    function logAlerts(alerts) {
+      const signature = alerts.join('|');
+      const lastEntry = appState.alertHistory[appState.alertHistory.length - 1];
+      const lastSignature = lastEntry ? lastEntry.alerts.join('|') : '';
+
+      if (signature === lastSignature) return;
+
+      appState.alertHistory.push({
+        time: new Date().toISOString(),
+        alerts: [...alerts]
+      });
+
+      saveAlertHistory();
+      renderHistoryList();
+    }
+
+    function showAlertBanner(alerts) {
+      const banner = document.getElementById('alert-banner');
+      document.getElementById('banner-text').textContent = `🚨 התרעות פעילות (${alerts.length})`;
+      document.getElementById('banner-zones').textContent = alerts.slice(0, 10).join(' • ');
+      banner.style.display = 'block';
+    }
+
+    function hideAlertBanner() {
+      document.getElementById('alert-banner').style.display = 'none';
+    }
+
+    function maybeTriggerNewAlert(alerts) {
+      const signature = alerts.join('|');
+      if (signature && signature !== appState.lastAlertSignature) {
+        appState.lastAlertSignature = signature;
+        localStorage.setItem('lastAlertSignature', signature);
+        beepAlert();
+      }
+    }
+
+    function pulseMarker(lat, lon) {
+      const circle = L.circle([lat, lon], {
+        radius: 12000,
+        color: '#ff4444',
+        fillColor: '#ff4444',
+        fillOpacity: 0.10,
+        weight: 2
+      }).addTo(map);
+
+      let radius = 12000;
+      const interval = setInterval(() => {
+        radius += 4500;
+        circle.setRadius(radius);
+        if (radius > 45000) {
+          clearInterval(interval);
+          map.removeLayer(circle);
+        }
+      }, 110);
+    }
+
+    function handleLiveAlerts(alerts) {
+      let matchedAny = false;
+
+      alerts.forEach(zone => {
+        const matchedCities = getCitiesMatchingZone(zone);
+
+        if (!matchedCities.length) {
+          addFeedEvent(`התקבלה התרעה שלא הותאמה למפה: ${zone}`, 'warn');
+        }
+
+        matchedCities.forEach(city => {
+          matchedAny = true;
+          const state = appState.cityStates[city.name];
+          state.postAlertUntil = Date.now() + 60 * 60 * 1000;
+          state.lastAlertAt = new Date().toISOString();
+          state.hitCount = (state.hitCount || 0) + 1;
+          state.noise = -2;
+
+          pulseMarker(city.lat, city.lon);
+          addFeedEvent(`התרעה זוהתה ב־${city.name}`, 'alert');
+        });
+      });
+
+      saveCityStates();
+      return matchedAny;
+    }
+
+    function generateDemoAlerts() {
+      const hotCities = [...cities]
+        .sort((a, b) => b.alerts4 - a.alerts4)
+        .slice(0, 8);
+
+      const count = Math.floor(Math.random() * 3);
+      const sample = [];
+
+      for (let i = 0; i < count; i++) {
+        const city = hotCities[Math.floor(Math.random() * hotCities.length)];
+        const zoneName = city.aliases?.[0] || city.name.replace("אזור ", "");
+        if (!sample.includes(zoneName)) sample.push(zoneName);
+      }
+
+      return sample;
+    }
+
+    async function tryFetchFromSource(source) {
+      const url = source.buildUrl();
+      addDebug(`מנסה מקור: ${source.name}`);
+
+      const res = await fetch(url, {
+        cache: 'no-store'
+      });
+
+      if (!res.ok) {
+        throw new Error(`${source.name} HTTP ${res.status}`);
+      }
+
+      const rawText = await res.text();
+      if (!rawText || !rawText.trim()) {
+        throw new Error(`${source.name} תגובה ריקה`);
+      }
+
+      let payload;
+      try {
+        payload = JSON.parse(rawText);
+      } catch {
+        throw new Error(`${source.name} JSON parse failed`);
+      }
+
+      if (source.unwrapJsonField) {
+        if (!payload || typeof payload.contents !== 'string') {
+          throw new Error(`${source.name} no contents field`);
+        }
+        const clean = payload.contents.replace(/^\uFEFF/, '').trim();
+        payload = JSON.parse(clean);
+      }
+
+      if (!Array.isArray(payload)) {
+        throw new Error(`${source.name} payload is not array`);
+      }
+
+      return payload;
+    }
+
+    async function fetchAlertsPipeline() {
+      const errors = [];
+
+      for (const source of ALERT_SOURCE_CANDIDATES) {
+        try {
+          const data = await tryFetchFromSource(source);
+          appState.lastSourceUsed = source.name;
+          localStorage.setItem('lastSourceUsed', source.name);
+          addDebug(`המקור הצליח: ${source.name} (${data.length} התרעות)`);
+          return { ok: true, data, source: source.name };
+        } catch (err) {
+          errors.push(err.message);
+          addDebug(`כישלון מקור: ${err.message}`);
+        }
+      }
+
+      addDebug('כל מקורות ההתרעה נכשלו');
+      return { ok: false, errors };
+    }
+
+    async function checkAlerts() {
+      setStatus('בודק התרעות חיות...', 'info');
+
+      const result = await fetchAlertsPipeline();
+      appState.lastFetchTime = new Date();
+
+      if (result.ok) {
+        appState.demoMode = false;
+        const data = result.data;
+
+        appState.activeAlerts = data;
+
+        if (Array.isArray(data) && data.length) {
+          showAlertBanner(data);
+          maybeTriggerNewAlert(data);
+          logAlerts(data);
+          const matchedAny = handleLiveAlerts(data);
+          setStatus(`התרעות פעילות: ${data.length} • מקור: ${result.source}`, 'alert');
+
+          if (!matchedAny) {
+            addFeedEvent('התקבלו התרעות, אך אף אזור לא הותאם לרשימת הערים', 'warn');
+          }
+        } else {
+          hideAlertBanner();
+          setStatus(`אין התרעות פעילות כרגע • מקור: ${result.source}`);
+          addFeedEvent('בדיקה הושלמה: אין התרעות פעילות', 'info');
+        }
+      } else {
+        appState.demoMode = true;
+        const fallbackAlerts = generateDemoAlerts();
+        appState.activeAlerts = fallbackAlerts;
+
+        if (fallbackAlerts.length) {
+          showAlertBanner(fallbackAlerts);
+          maybeTriggerNewAlert(fallbackAlerts);
+          logAlerts(fallbackAlerts);
+          handleLiveAlerts(fallbackAlerts);
+          setStatus('מקור ההתרעות נפל • מצב DEMO מופעל', 'error');
+          addFeedEvent('מעבר למצב DEMO בגלל כשל תקשורת', 'warn');
+        } else {
+          hideAlertBanner();
+          setStatus('מקור ההתרעות נפל • אין נתוני DEMO כרגע', 'error');
+          addFeedEvent('כשל תקשורת במקור ההתרעות', 'warn');
+        }
+      }
+
+      updateMarkers();
+      updateStats();
+
+      if (appState.selectedCity) {
+        const selected = cities.find(c => c.name === appState.selectedCity);
+        if (selected) showCityDetails(selected, false);
+      }
+    }
+
+    function updateTopZones() {
+      const ranked = [...cities]
+        .map(city => ({ name: city.name, risk: getRiskScore(city) }))
+        .sort((a, b) => b.risk - a.risk)
+        .slice(0, 5);
+
+      document.getElementById('top-zones').innerHTML = ranked
+        .map((item, idx) => `${idx + 1}. ${item.name} — ${item.risk}%`)
+        .join('<br>');
+    }
+
+    function updateStats() {
+      document.getElementById('total4').textContent = cities.reduce((sum, city) => sum + city.alerts4, 0);
+      document.getElementById('live-count').textContent = appState.activeAlerts.length;
+      updateTopZones();
+      renderHistoryList();
+      renderEventsFeed();
+      updateLastUpdate();
+      renderDebug();
+    }
+
     const israelBounds = L.latLngBounds([29.3, 34.1], [33.4, 35.9]);
 
     const map = L.map('map', {
@@ -927,36 +1237,12 @@
       };
     }
 
-    function pulseMarker(lat, lon) {
-      const circle = L.circle([lat, lon], {
-        radius: 12000,
-        color: '#ff4444',
-        fillColor: '#ff4444',
-        fillOpacity: 0.10,
-        weight: 2
-      }).addTo(map);
-
-      let radius = 12000;
-      const interval = setInterval(() => {
-        radius += 4500;
-        circle.setRadius(radius);
-        if (radius > 45000) {
-          clearInterval(interval);
-          map.removeLayer(circle);
-        }
-      }, 110);
-    }
-
     function initMapMarkers() {
       cities.forEach(city => {
         const score = getRiskScore(city);
         const marker = L.circleMarker([city.lat, city.lon], getMarkerStyle(score, false)).addTo(map);
-
         marker.bindTooltip(`<b>${city.name}</b><br>מדד סיכון: ${score}%`);
-        marker.on('click', () => {
-          showCityDetails(city);
-        });
-
+        marker.on('click', () => showCityDetails(city, true));
         markers[city.name] = marker;
       });
     }
@@ -971,14 +1257,15 @@
 
         marker.setStyle(getMarkerStyle(score, isSelected));
 
+        const state = appState.cityStates[city.name];
         const tooltipHtml = `
           <b>${city.name}</b><br>
           מדד סיכון: ${score}%<br>
-          בסיס 4 ימים: ${city.alerts4}
+          בסיס 4 ימים: ${city.alerts4}<br>
+          התרעה אחרונה: ${state.lastAlertAt ? formatTime(state.lastAlertAt) : 'אין'}
         `;
 
         if (marker.getTooltip()) marker.setTooltipContent(tooltipHtml);
-        else marker.bindTooltip(tooltipHtml);
       });
     }
 
@@ -996,22 +1283,20 @@
       userMarker.bindTooltip('המיקום שלי');
     }
 
-    // =========================
-    // עדכון אזור נבחר
-    // =========================
-    function showCityDetails(city) {
+    function showCityDetails(city, fly = true) {
       appState.selectedCity = city.name;
       selectedMarkerName = city.name;
 
       const score = getRiskScore(city);
       const state = appState.cityStates[city.name];
+      const liveBoost = getNearbyLiveBoost(city);
 
       document.getElementById('zone-name').textContent = city.name;
       document.getElementById('percentage').textContent = `${score}%`;
       document.getElementById('fill').style.width = `${score}%`;
       document.getElementById('detail-base').textContent = city.alerts4;
-      document.getElementById('detail-last-alert').textContent = state.lastAlertAt ? formatTime(state.lastAlertAt) : 'אין';
-      document.getElementById('detail-live-boost').textContent = `+${getNearbyLiveBoost(city)}`;
+      document.getElementById('detail-last-alert').textContent = state.lastAlertAt ? formatDateTime(state.lastAlertAt) : 'אין';
+      document.getElementById('detail-live-boost').textContent = `+${liveBoost}`;
       document.getElementById('selected-summary').textContent = `${city.name} • ${score}%`;
 
       if (appState.userLocation) {
@@ -1021,165 +1306,32 @@
         document.getElementById('detail-distance').textContent = 'לא זוהה';
       }
 
-      let reason = [];
-      if (city.alerts4 >= 7) reason.push('אזור עם בסיס פעילות גבוה');
-      else if (city.alerts4 >= 3) reason.push('אזור עם פעילות בינונית');
-      else reason.push('אזור עם בסיס פעילות נמוך');
+      const reason = [];
+      if (city.alerts4 >= 7) reason.push('בסיס היסטורי גבוה');
+      else if (city.alerts4 >= 3) reason.push('בסיס היסטורי בינוני');
+      else reason.push('בסיס היסטורי נמוך');
 
-      const liveBoost = getNearbyLiveBoost(city);
       if (liveBoost >= 20) reason.push('השפעה חזקה מהתרעות חיות');
-      else if (liveBoost > 0) reason.push('השפעה חלקית מאזורים פעילים סמוכים');
+      else if (liveBoost > 0) reason.push('השפעה חלקית מאזור סמוך');
 
-      if (state.postAlertUntil > Date.now()) reason.push('דעיכה זמנית אחרי התרעה אחרונה');
+      if (state.postAlertUntil > Date.now()) reason.push('דעיכה זמנית אחרי התרעה');
+
+      if (appState.demoMode) reason.push('מצב DEMO');
 
       document.getElementById('explain').textContent = reason.join(' • ');
 
       const box = document.getElementById('prob-box');
       box.classList.toggle('high', score >= 70);
 
-      map.flyTo([city.lat, city.lon], Math.max(map.getZoom(), 9), {
-        duration: 0.7
-      });
+      if (fly) {
+        map.flyTo([city.lat, city.lon], Math.max(map.getZoom(), 9), {
+          duration: 0.7
+        });
+      }
 
       updateMarkers();
     }
 
-    // =========================
-    // סטטיסטיקות
-    // =========================
-    function updateTopZones() {
-      const ranked = [...cities]
-        .map(city => ({
-          name: city.name,
-          risk: getRiskScore(city)
-        }))
-        .sort((a, b) => b.risk - a.risk)
-        .slice(0, 5);
-
-      document.getElementById('top-zones').innerHTML = ranked
-        .map((item, idx) => `${idx + 1}. ${item.name} — ${item.risk}%`)
-        .join('<br>');
-    }
-
-    function updateHistoryList() {
-      const target = document.getElementById('history-list');
-
-      if (!appState.alertHistory.length) {
-        target.innerHTML = 'אין היסטוריה מקומית עדיין';
-        return;
-      }
-
-      const latest = [...appState.alertHistory].reverse().slice(0, 8);
-      target.innerHTML = latest.map(entry => {
-        const zones = entry.alerts.slice(0, 3).join(' • ');
-        const extra = entry.alerts.length > 3 ? ` ועוד ${entry.alerts.length - 3}` : '';
-        return `• ${formatDateTime(entry.time)} — ${zones}${extra}`;
-      }).join('<br>');
-    }
-
-    function updateStats() {
-      document.getElementById('total4').textContent = cities.reduce((sum, city) => sum + city.alerts4, 0);
-      document.getElementById('live-count').textContent = appState.activeAlerts.length;
-      updateTopZones();
-      updateHistoryList();
-      updateLastUpdate();
-    }
-
-    // =========================
-    // התרעות חיות
-    // =========================
-    function showAlertBanner(alerts) {
-      const banner = document.getElementById('alert-banner');
-      document.getElementById('banner-text').textContent = `🚨 התרעות פעילות (${alerts.length})`;
-      document.getElementById('banner-zones').textContent = alerts.slice(0, 10).join(' • ');
-      banner.style.display = 'block';
-    }
-
-    function hideAlertBanner() {
-      document.getElementById('alert-banner').style.display = 'none';
-    }
-
-    function logAlerts(alerts) {
-      appState.alertHistory.push({
-        time: new Date().toISOString(),
-        alerts: [...alerts]
-      });
-      appState.alertHistory = appState.alertHistory.slice(-120);
-      saveAlertHistory();
-    }
-
-    function maybeTriggerNewAlert(alerts) {
-      const signature = alerts.join('|');
-
-      if (signature && signature !== appState.lastAlertSignature) {
-        beepAlert();
-        appState.lastAlertSignature = signature;
-        localStorage.setItem('lastAlertSignature', signature);
-      }
-    }
-
-    function handleLiveAlerts(alerts) {
-      alerts.forEach(zone => {
-        const matchedCities = getCitiesMatchingZone(zone);
-
-        matchedCities.forEach(city => {
-          const state = appState.cityStates[city.name];
-          state.postAlertUntil = Date.now() + 60 * 60 * 1000;
-          state.lastAlertAt = new Date().toISOString();
-          state.hitCount = (state.hitCount || 0) + 1;
-          state.noise = -6;
-          pulseMarker(city.lat, city.lon);
-        });
-      });
-
-      saveCityStates();
-    }
-
-    async function checkAlerts() {
-      try {
-        setStatus('בודק התרעות חיות...');
-        const res = await fetch(PROXY + encodeURIComponent(ALERTS_URL), {
-          cache: 'no-store'
-        });
-
-        const text = await res.text();
-        const cleaned = text.replace(/^\uFEFF/, '').trim();
-
-        if (!cleaned) throw new Error('תגובה ריקה');
-
-        const data = JSON.parse(cleaned);
-        appState.lastFetchTime = new Date();
-
-        if (Array.isArray(data) && data.length) {
-          appState.activeAlerts = data;
-          showAlertBanner(data);
-          maybeTriggerNewAlert(data);
-          logAlerts(data);
-          handleLiveAlerts(data);
-          setStatus(`התרעות פעילות: ${data.length}`, { alert: true });
-        } else {
-          appState.activeAlerts = [];
-          hideAlertBanner();
-          setStatus('אין התרעות פעילות כרגע');
-        }
-
-        updateMarkers();
-        updateStats();
-
-        if (appState.selectedCity) {
-          const selected = cities.find(c => c.name === appState.selectedCity);
-          if (selected) showCityDetails(selected);
-        }
-      } catch (err) {
-        console.error(err);
-        setStatus('שגיאת תקשורת מול מקור ההתרעות', { error: true });
-        updateLastUpdate();
-      }
-    }
-
-    // =========================
-    // חיפוש
-    // =========================
     function findCityByQuery(query) {
       const q = normalizeText(query);
       if (!q) return null;
@@ -1197,10 +1349,10 @@
         if (e.key === 'Enter') {
           const city = findCityByQuery(input.value);
           if (city) {
-            showCityDetails(city);
+            showCityDetails(city, true);
             setStatus(`נמצא אזור: ${city.name}`);
           } else {
-            setStatus('לא נמצא אזור תואם לחיפוש', { error: true });
+            setStatus('לא נמצא אזור תואם לחיפוש', 'error');
           }
         }
       });
@@ -1208,21 +1360,23 @@
       input.addEventListener('input', () => {
         const city = findCityByQuery(input.value);
         if (city && input.value.trim().length >= 2) {
-          showCityDetails(city);
+          showCityDetails(city, false);
         }
       });
     }
 
-    // =========================
-    // מיקום משתמש
-    // =========================
+    function saveUserLocation(lat, lon) {
+      appState.userLocation = { lat, lon };
+      saveJSON('userLocation', appState.userLocation);
+    }
+
     function locateUser() {
       if (!navigator.geolocation) {
-        setStatus('הדפדפן לא תומך בזיהוי מיקום', { error: true });
+        setStatus('הדפדפן לא תומך בזיהוי מיקום', 'error');
         return;
       }
 
-      setStatus('מאתר את המיקום שלך...');
+      setStatus('מאתר את המיקום שלך...', 'info');
 
       navigator.geolocation.getCurrentPosition(
         pos => {
@@ -1232,22 +1386,19 @@
 
           const nearest = findNearestCity(latitude, longitude);
           if (nearest.city) {
-            showCityDetails(nearest.city);
+            showCityDetails(nearest.city, true);
             map.flyTo([nearest.city.lat, nearest.city.lon], 9, { duration: 0.8 });
             setStatus(`האזור הקרוב אליך: ${nearest.city.name}`);
+            addFeedEvent(`זוהה מיקום משתמש, אזור קרוב: ${nearest.city.name}`, 'info');
           }
         },
-        err => {
-          console.error(err);
-          setStatus('לא התקבלה הרשאת מיקום או שהזיהוי נכשל', { error: true });
+        () => {
+          setStatus('לא התקבלה הרשאת מיקום או שהזיהוי נכשל', 'error');
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
       );
     }
 
-    // =========================
-    // ערכות תצוגה
-    // =========================
     function applyTheme(index) {
       document.body.classList.remove(...THEMES);
       document.body.classList.add(THEMES[index]);
@@ -1260,23 +1411,17 @@
       applyTheme(next);
     }
 
-    // =========================
-    // רענון
-    // =========================
-    function refreshAll() {
+    function refreshAllUI() {
       randomizeNoise();
       updateMarkers();
       updateStats();
 
       if (appState.selectedCity) {
         const selected = cities.find(c => c.name === appState.selectedCity);
-        if (selected) showCityDetails(selected);
+        if (selected) showCityDetails(selected, false);
       }
     }
 
-    // =========================
-    // אירועים
-    // =========================
     function bindButtons() {
       document.getElementById('theme-toggle').addEventListener('click', cycleTheme);
 
@@ -1288,11 +1433,13 @@
       });
 
       document.getElementById('locate-btn').addEventListener('click', locateUser);
+
+      document.getElementById('refresh-btn').addEventListener('click', async () => {
+        addDebug('רענון ידני הופעל');
+        await checkAlerts();
+      });
     }
 
-    // =========================
-    // אתחול
-    // =========================
     function bootstrap() {
       initCityStates();
       applyTheme(appState.currentThemeIndex);
@@ -1302,6 +1449,9 @@
       bindButtons();
       bindSearch();
       randomizeNoise();
+      renderHistoryList();
+      renderEventsFeed();
+      renderDebug();
       updateMarkers();
       updateStats();
 
@@ -1310,13 +1460,16 @@
       }
 
       const defaultCity = cities.find(c => c.name === "אזור פתח תקווה") || cities[0];
-      showCityDetails(defaultCity);
+      showCityDetails(defaultCity, false);
+
+      addFeedEvent('המערכת עלתה בהצלחה', 'info');
+      addDebug(`מקור אחרון ידוע: ${appState.lastSourceUsed}`);
 
       checkAlerts();
 
       setInterval(updateClock, 1000);
-      setInterval(refreshAll, 30000);
-      setInterval(checkAlerts, 5000);
+      setInterval(refreshAllUI, 30000);
+      setInterval(checkAlerts, 15000);
     }
 
     bootstrap();
